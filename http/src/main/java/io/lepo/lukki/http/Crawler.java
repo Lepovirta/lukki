@@ -10,12 +10,16 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.*;
 
 public class Crawler {
+    private static final Logger log = LoggerFactory.getLogger(Crawler.class);
+
     private final CloseableHttpAsyncClient httpClient;
     private final ForkJoinPool pool;
     private final Phaser phaser;
@@ -29,12 +33,12 @@ public class Crawler {
     }
 
     void run(String url) {
-        System.out.println("Starting");
+        log.debug("Starting");
         httpClient.start();
 
         enqueueUrl(url, url);
         phaser.arriveAndAwaitAdvance();
-        System.out.println("Finished");
+        log.debug("Finished");
 
         try {
             httpClient.close();
