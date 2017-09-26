@@ -1,4 +1,4 @@
-package io.lepo.lukki.http;
+package io.lepo.lukki.core;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -15,7 +15,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Phaser;
 
 public class Crawler {
     private static final Logger log = LoggerFactory.getLogger(Crawler.class);
@@ -32,7 +35,7 @@ public class Crawler {
         visitedUrls = new ConcurrentHashMap<>();
     }
 
-    void run(String url) {
+    public void run(String url) {
         log.debug("Starting");
         httpClient.start();
 
@@ -107,10 +110,5 @@ public class Crawler {
 
     private void resultToOutput(String url, String message) {
         System.out.println(url + ": " + message);
-    }
-
-    public static void main(String[] args) {
-        Crawler crawler = new Crawler();
-        crawler.run("https://lepo.io/");
     }
 }
