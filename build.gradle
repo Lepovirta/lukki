@@ -10,6 +10,13 @@ project.ext {
             connection "scm:git:https://github.com/Lepovirta/${rootProject.name}"
             developerConnection "scm:git:https://github.com/Lepovirta/${rootProject.name}"
         }
+        licenses {
+            license {
+                name 'GNU Lesser General Public License'
+                url 'http://www.gnu.org/licenses/lgpl-2.1.html'
+                distribution 'repo'
+            }
+        }
         developers {
             developer {
                 id 'jkpl'
