@@ -3,11 +3,11 @@ package io.lepo.lukki.http;
 import io.lepo.lukki.core.CrawlClient;
 import java.io.IOException;
 import java.io.InputStream;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.concurrent.FutureCallback;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.slf4j.Logger;
@@ -37,20 +37,29 @@ public final class HttpClient implements CrawlClient {
       client.execute(get, new FutureCallback<HttpResponse>() {
         @Override
         public void completed(HttpResponse result) {
-          HttpEntity entity = result.getEntity();
-          if (entity == null) {
-            log.debug("No entity available for URL [{}]", url);
-            callback.onSuccess("", null);
-            return;
-          }
+          try {
+            HttpEntity entity = result.getEntity();
+            if (entity == null) {
+              log.debug("No entity available for URL [{}]", url);
+              callback.empty();
+              return;
+            }
 
-          String mimeType = getMimeType(entity);
+            ContentType contentType = ContentType.getOrDefault(entity);
 
-          try (InputStream input = entity.getContent()) {
-            log.debug("Got content with mime type [{}]", mimeType);
-            callback.onSuccess(mimeType, input);
-          } catch (IOException ex) {
-            log.debug("Failed to read content for URL [{}]. Reason: {}", url, ex.getMessage());
+            try (InputStream input = entity.getContent()) {
+              log.debug("Got content with content type [{}]", contentType);
+              callback.onSuccess(contentType.getMimeType(), contentType.getCharset(), input);
+            } catch (IOException ex) {
+              log.debug("Failed to read content for URL [{}]. Reason: {}", url, ex.getMessage());
+              callback.onFailure(ex);
+            }
+          } catch (Exception ex) {
+            log.debug(
+                "Failure happened while handling the result for URL [{}]: Reason: {}",
+                url,
+                ex.getMessage()
+            );
             callback.onFailure(ex);
           }
         }
@@ -74,13 +83,6 @@ public final class HttpClient implements CrawlClient {
       );
       callback.onFailure(ex);
     }
-  }
-
-  private String getMimeType(HttpEntity entity) {
-    Header contentTypeHeader = entity.getContentType();
-    String contentType = contentTypeHeader == null ? "" : contentTypeHeader.getValue();
-    contentType = contentType == null ? "" : contentType;
-    return contentType.split(";")[0].trim();
   }
 
   @Override

@@ -3,6 +3,7 @@ package io.lepo.lukki.core;
 import io.lepo.lukki.core.CrawlClient.Callback;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ForkJoinPool;
@@ -65,9 +66,9 @@ public final class CrawlEngine implements Consumer<String> {
   private void fetchUrl(final String originUrl, final String url) {
     client.accept(url, new Callback() {
       @Override
-      public void onSuccess(String mimeType, InputStream input) {
+      public void onSuccess(String mimeType, Charset charset, InputStream input) {
         try {
-          CrawlContext context = new CrawlContext(originUrl, url, mimeType);
+          CrawlContext context = new CrawlContext(originUrl, url, mimeType, charset);
 
           log.debug("Executing handler for mime type [{}] and URL [{}]", mimeType, url);
           ScriptRegistry.Result scriptResult = registry.run(context, input);
