@@ -1,11 +1,57 @@
-subprojects {
+allprojects {
+    plugins.withType(JavaPlugin).whenPluginAdded {
+        group 'io.lepo'
+        version '0.1-SNAPSHOT'
+        sourceCompatibility = 1.8
+        archivesBaseName = "${rootProject.name}-${name}"
+
+        repositories {
+            mavenCentral()
+        }
+    }
+}
+
+project(":cli") {
+    apply plugin: 'java'
+    apply plugin: 'application'
+
+    mainClassName = 'io.lepo.lukki.cli.Main'
+
+    dependencies {
+        compile project(':core')
+        compile project(':http')
+        compile project(':html')
+        compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    }
+}
+
+project(":core") {
     apply plugin: 'java'
 
-    group 'io.lepo'
-    version '0.1-SNAPSHOT'
-    sourceCompatibility = 1.8
+    dependencies {
+        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+        testCompile group: 'junit', name: 'junit', version: '4.12'
+    }
+}
 
-    repositories {
-        mavenCentral()
+project(":http") {
+    apply plugin: 'java'
+
+    dependencies {
+        compile project(':core')
+        compile group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.1.3'
+        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+        testCompile group: 'junit', name: 'junit', version: '4.12'
+    }
+}
+
+project(":html") {
+    apply plugin: 'java'
+
+    dependencies {
+        compile project(':core')
+        compile group: 'org.jsoup', name: 'jsoup', version: '1.10.3'
+        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+        testCompile group: 'junit', name: 'junit', version: '4.12'
     }
 }
