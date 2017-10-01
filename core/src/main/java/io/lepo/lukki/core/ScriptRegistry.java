@@ -6,7 +6,7 @@ import java.util.Map;
 
 public final class ScriptRegistry {
 
-  public static class Result {
+  public static final class Result {
 
     public static final Result empty = new Result(new String[]{}, new AssertionResult[]{});
 

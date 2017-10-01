@@ -1,14 +1,14 @@
 package io.lepo.lukki.html;
 
 import io.lepo.lukki.core.CrawlContext;
+import io.lepo.lukki.core.Script;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-final class JsoupLinkExtractor implements BiFunction<CrawlContext, Document, String[]> {
+final class JsoupLinkExtractor implements Script.LinkExtractor<Document> {
 
   @Override
   public String[] apply(CrawlContext crawlContext, Document document) {

@@ -7,9 +7,23 @@ import java.util.function.BiFunction;
 
 public final class Script<Entity> {
 
+  public interface EntityParser<Entity> extends BiFunction<CrawlContext, InputStream, Entity> {
+
+  }
+
+  public interface LinkExtractor<Entity> extends BiFunction<CrawlContext, Entity, String[]> {
+
+  }
+
+  public interface AssertionFunction<Entity> extends
+      BiFunction<CrawlContext, Entity, AssertionResult> {
+
+  }
+
   public static final Script<Object> throwOnEverything = new Script<>(
       (context, input) -> {
-        throw new UnsupportedOperationException("No script found for mime type: " + context.getMimeType());
+        throw new UnsupportedOperationException(
+            "No script found for mime type: " + context.getMimeType());
       },
       (context, entity) -> new String[0],
       new ArrayList<>()
@@ -21,22 +35,22 @@ public final class Script<Entity> {
       new ArrayList<>()
   );
 
-  private final BiFunction<CrawlContext, InputStream, Entity> mapper;
-  private final BiFunction<CrawlContext, Entity, String[]> linkExtractor;
-  private final List<BiFunction<CrawlContext, Entity, AssertionResult>> assertionFunctions;
+  private final EntityParser<Entity> parser;
+  private final LinkExtractor<Entity> linkExtractor;
+  private final List<AssertionFunction<Entity>> assertionFunctions;
 
   public Script(
-      BiFunction<CrawlContext, InputStream, Entity> mapper,
-      BiFunction<CrawlContext, Entity, String[]> linkExtractor,
-      List<BiFunction<CrawlContext, Entity, AssertionResult>> assertionFunctions
+      EntityParser<Entity> parser,
+      LinkExtractor<Entity> linkExtractor,
+      List<AssertionFunction<Entity>> assertionFunctions
   ) {
-    this.mapper = mapper;
+    this.parser = parser;
     this.linkExtractor = linkExtractor;
     this.assertionFunctions = assertionFunctions;
   }
 
   public ScriptRegistry.Result run(CrawlContext context, InputStream input) {
-    Entity entity = mapper.apply(context, input);
+    Entity entity = parser.apply(context, input);
     String[] links = linkExtractor.apply(context, entity);
 
     AssertionResult[] assertionResults = new AssertionResult[assertionFunctions.size()];

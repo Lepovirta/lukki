@@ -1,13 +1,13 @@
 package io.lepo.lukki.html;
 
 import io.lepo.lukki.core.CrawlContext;
+import io.lepo.lukki.core.Script;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.function.BiFunction;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-final class JsoupDocumentParser implements BiFunction<CrawlContext, InputStream, Document> {
+final class JsoupDocumentParser implements Script.EntityParser<Document> {
 
   @Override
   public Document apply(CrawlContext crawlContext, InputStream input) {
