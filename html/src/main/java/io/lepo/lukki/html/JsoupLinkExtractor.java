@@ -12,19 +12,15 @@ final class JsoupLinkExtractor implements Script.LinkExtractor<Document> {
 
   @Override
   public String[] apply(CrawlContext crawlContext, Document document) {
-    // TODO: Link extractor shouldn't need to be aware of this.
     // TODO: Logging
-    if (crawlContext.getUrl().startsWith(crawlContext.getOriginUrl())) {
-      Elements anchorElements = document.select("a");
-      List<String> links = new ArrayList<>(100);
+    // TODO: extract links from places other than anchors
+    Elements anchorElements = document.select("a");
+    List<String> links = new ArrayList<>(100);
 
-      for (Element element : anchorElements) {
-        links.add(element.absUrl("href"));
-      }
-
-      return links.toArray(new String[links.size()]);
+    for (Element element : anchorElements) {
+      links.add(element.absUrl("href"));
     }
 
-    return new String[0];
+    return links.toArray(new String[links.size()]);
   }
 }

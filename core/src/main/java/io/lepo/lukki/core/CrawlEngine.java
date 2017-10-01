@@ -21,11 +21,14 @@ public final class CrawlEngine implements Consumer<String> {
   private final ConcurrentMap<String, Boolean> visitedUrls;
   private final CrawlClient client;
   private final ScriptRegistry registry;
+  private final Filters filters;
 
   public CrawlEngine(
       CrawlClient client,
-      ScriptRegistry registry
+      ScriptRegistry registry,
+      Filters filters
   ) {
+    this.filters = filters;
     this.pool = new ForkJoinPool(2);
     this.phaser = new Phaser(1);
     this.visitedUrls = new ConcurrentHashMap<>();
@@ -64,57 +67,91 @@ public final class CrawlEngine implements Consumer<String> {
   }
 
   private void fetchUrl(final String originUrl, final String url) {
-    client.accept(url, new Callback() {
-      @Override
-      public void onSuccess(String mimeType, Charset charset, InputStream input) {
-        try {
-          CrawlContext context = new CrawlContext(originUrl, url, mimeType, charset);
-
-          log.debug("Executing handler for mime type [{}] and URL [{}]", mimeType, url);
-          Script.Result scriptResult = registry.run(context, input);
-
-          String[] links = scriptResult.getLinks();
-          log.debug("Found {} URLs from URL [{}]", links.length, url);
-          for (String link : links) {
-            enqueueUrl(originUrl, link);
-          }
-
-          CrawlResult crawlResult = CrawlResult.success(
-              url,
-              scriptResult.getAssertionResults()
-          );
-
-          System.out.println(crawlResult); // TODO
-        } catch (Exception e) {
-          log.debug("Execution of successful fetch failed!", e);
-          handleFailure(e);
-        } finally {
-          phaser.arriveAndDeregister();
-        }
-      }
-
-      @Override
-      public void onFailure(Exception ex) {
-        try {
-          log.debug("Fetch failed for URL [{}]", ex);
-          handleFailure(ex);
-        } finally {
-          phaser.arriveAndDeregister();
-        }
-      }
-
-      private void handleFailure(Exception ex) {
-        CrawlResult crawlResult = CrawlResult.failure(
-            url,
-            ex.getMessage()
-        );
-        System.out.println(crawlResult); // TODO
-      }
-    });
+    Callback[] callbacks = {
+        new HandleFetch(originUrl, url),
+        new AfterFetch()
+    };
+    client.accept(
+        url,
+        CrawlClient.Callback.sequence(callbacks)
+    );
   }
 
   @Override
   public void accept(String originUrl) {
     run(originUrl);
+  }
+
+  private class HandleFetch implements CrawlClient.Callback {
+
+    private final String originUrl;
+    private final String url;
+
+    HandleFetch(String originUrl, String url) {
+      this.originUrl = originUrl;
+      this.url = url;
+    }
+
+    @Override
+    public void onSuccess(String mimeType, Charset charset, InputStream input) {
+      CrawlContext context = new CrawlContext(originUrl, url, mimeType, charset);
+
+      if (!filters.shouldProcessDocument(context)) {
+        log.debug("Skipping handling for document at URL [{}]", url);
+        return; // TODO
+      }
+
+      try {
+        log.debug("Executing handler for mime type [{}] and URL [{}]", mimeType, url);
+        Script.Result scriptResult = registry.run(context, input);
+
+        String[] links = scriptResult.getLinks();
+        log.debug("Found {} URLs from URL [{}]", links.length, url);
+        for (String link : links) {
+          if (filters.shouldProcessLink(context, link)) {
+            enqueueUrl(originUrl, link);
+          } else {
+            log.debug("Skipping fetching of URL [{}]", url);
+          }
+        }
+
+        CrawlResult crawlResult = CrawlResult.success(
+            url,
+            scriptResult.getAssertionResults()
+        );
+
+        System.out.println(crawlResult); // TODO
+      } catch (Exception e) {
+        log.debug("Execution of successful fetch failed!", e);
+        handleFailure(e);
+      }
+    }
+
+    @Override
+    public void onFailure(Exception ex) {
+      log.debug("Fetch failed for URL [{}]", ex);
+      handleFailure(ex);
+    }
+
+    private void handleFailure(Exception ex) {
+      CrawlResult crawlResult = CrawlResult.failure(
+          url,
+          ex.getMessage()
+      );
+      System.out.println(crawlResult); // TODO
+    }
+  }
+
+  private class AfterFetch implements Callback {
+
+    @Override
+    public void onSuccess(String mimeType, Charset charset, InputStream input) {
+      phaser.arriveAndDeregister();
+    }
+
+    @Override
+    public void onFailure(Exception ex) {
+      phaser.arriveAndDeregister();
+    }
   }
 }

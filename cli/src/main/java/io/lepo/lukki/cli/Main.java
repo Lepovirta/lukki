@@ -1,6 +1,7 @@
 package io.lepo.lukki.cli;
 
 import io.lepo.lukki.core.CrawlEngine;
+import io.lepo.lukki.core.Filters;
 import io.lepo.lukki.core.Script;
 import io.lepo.lukki.core.ScriptRegistry;
 import io.lepo.lukki.html.Html;
@@ -16,7 +17,11 @@ public class Main {
     scripts.put(Html.mimeType, Html.script(new ArrayList<>()));
     ScriptRegistry scriptRegistry = ScriptRegistry.lenient(scripts);
 
-    CrawlEngine crawler = new CrawlEngine(new HttpClient(), scriptRegistry);
+    CrawlEngine crawler = new CrawlEngine(
+        new HttpClient(),
+        scriptRegistry,
+        new Filters(Filters.LinkFilter.skipNone, Filters.DocumentFilter.skipForeignHost)
+    );
     crawler.run("https://lepo.io/");
   }
 }
