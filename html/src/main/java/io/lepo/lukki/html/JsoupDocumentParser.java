@@ -9,7 +9,7 @@ import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class JsoupDocumentParser implements Script.EntityParser<Document> {
+final class JsoupDocumentParser implements Script.DocumentParser<Document> {
 
   private static final Logger log = LoggerFactory.getLogger(JsoupDocumentParser.class);
 

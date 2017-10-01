@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
-public final class Script<Entity> {
+public final class Script<Doc> {
 
-  public interface EntityParser<Entity> extends BiFunction<CrawlContext, InputStream, Entity> {
+  public interface DocumentParser<Entity> extends BiFunction<CrawlContext, InputStream, Entity> {
 
   }
 
@@ -59,14 +59,14 @@ public final class Script<Entity> {
       new ArrayList<>()
   );
 
-  private final EntityParser<Entity> parser;
-  private final LinkExtractor<Entity> linkExtractor;
-  private final List<AssertionFunction<Entity>> assertionFunctions;
+  private final DocumentParser<Doc> parser;
+  private final LinkExtractor<Doc> linkExtractor;
+  private final List<AssertionFunction<Doc>> assertionFunctions;
 
   public Script(
-      EntityParser<Entity> parser,
-      LinkExtractor<Entity> linkExtractor,
-      List<AssertionFunction<Entity>> assertionFunctions
+      DocumentParser<Doc> parser,
+      LinkExtractor<Doc> linkExtractor,
+      List<AssertionFunction<Doc>> assertionFunctions
   ) {
     this.parser = parser;
     this.linkExtractor = linkExtractor;
@@ -74,13 +74,13 @@ public final class Script<Entity> {
   }
 
   public Result run(CrawlContext context, InputStream input) {
-    Entity entity = parser.apply(context, input);
-    String[] links = linkExtractor.apply(context, entity);
+    Doc doc = parser.apply(context, input);
+    String[] links = linkExtractor.apply(context, doc);
 
     AssertionResult[] assertionResults = new AssertionResult[assertionFunctions.size()];
 
     for (int i = 0; i < assertionFunctions.size(); i++) {
-      AssertionResult assertionResult = assertionFunctions.get(i).apply(context, entity);
+      AssertionResult assertionResult = assertionFunctions.get(i).apply(context, doc);
       assertionResults[i] = assertionResult;
     }
 

@@ -1,12 +1,13 @@
 package io.lepo.lukki.html;
 
 import io.lepo.lukki.core.Script;
+import io.lepo.lukki.core.Script.DocumentParser;
 import java.util.List;
 import org.jsoup.nodes.Document;
 
 public class Html {
 
-  public static final Script.EntityParser<Document> mapper =
+  public static final DocumentParser<Document> parser =
       new JsoupDocumentParser();
 
   public static final Script.LinkExtractor<Document> linkExtractor =
@@ -17,7 +18,7 @@ public class Html {
   public static Script<Document> script(
       List<Script.AssertionFunction<Document>> assertionFunctions
   ) {
-    return new Script<>(mapper, linkExtractor, assertionFunctions);
+    return new Script<>(parser, linkExtractor, assertionFunctions);
   }
 
   private Html() {
