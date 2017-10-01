@@ -1,12 +1,51 @@
+project.ext {
+    groupName = 'io.lepo'
+    pomConfig = {
+        organisation {
+            name 'Lepo.IO'
+            url 'https://lepo.io/'
+        }
+        scm {
+            url "https://github.com/Lepovirta/${rootProject.name}"
+            connection "scm:git:https://github.com/Lepovirta/${rootProject.name}"
+            developerConnection "scm:git:https://github.com/Lepovirta/${rootProject.name}"
+        }
+        developers {
+            developer {
+                id 'jkpl'
+                name 'Jaakko Pallari'
+            }
+        }
+    }
+}
+
 allprojects {
+    project.version = '0.1-SNAPSHOT'
+
     plugins.withType(JavaPlugin).whenPluginAdded {
-        group 'io.lepo'
-        version '0.1-SNAPSHOT'
+        group project.groupName
+        version project.version
         sourceCompatibility = 1.8
         archivesBaseName = "${rootProject.name}-${name}"
 
         repositories {
             mavenCentral()
+        }
+    }
+
+    plugins.withType(MavenPublishPlugin).whenPluginAdded {
+        publishing {
+            publications {
+                maven(MavenPublication) {
+                    groupId project.groupName
+                    artifactId archivesBaseName
+                    version project.version
+                    from components.java
+                    pom.withXml {
+                        asNode().children().last() + project.pomConfig
+                    }
+                }
+            }
         }
     }
 }
@@ -27,6 +66,7 @@ project(":cli") {
 
 project(":core") {
     apply plugin: 'java'
+    apply plugin: 'maven-publish'
 
     dependencies {
         compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
@@ -36,6 +76,7 @@ project(":core") {
 
 project(":http") {
     apply plugin: 'java'
+    apply plugin: 'maven-publish'
 
     dependencies {
         compile project(':core')
@@ -47,6 +88,7 @@ project(":http") {
 
 project(":html") {
     apply plugin: 'java'
+    apply plugin: 'maven-publish'
 
     dependencies {
         compile project(':core')
