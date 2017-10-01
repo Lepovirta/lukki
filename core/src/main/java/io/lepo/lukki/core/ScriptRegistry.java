@@ -20,11 +20,11 @@ public final class ScriptRegistry {
   }
 
   public static ScriptRegistry strict(Map<String, Script<?>> scripts) {
-    return new ScriptRegistry(Script.throwOnEverything, scripts);
+    return new ScriptRegistry(Script.rejectAll, scripts);
   }
 
   public static ScriptRegistry lenient(Map<String, Script<?>> scripts) {
-    return new ScriptRegistry(Script.acceptEverything, scripts);
+    return new ScriptRegistry(Script.acceptAll, scripts);
   }
 
   public static ScriptRegistry custom(Script<?> defaultScript, Map<String, Script<?>> scripts) {

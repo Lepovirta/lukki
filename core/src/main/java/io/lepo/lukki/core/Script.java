@@ -8,11 +8,15 @@ import java.util.function.BiFunction;
 public final class Script<Doc> {
 
   public interface DocumentParser<Entity> extends BiFunction<CrawlContext, InputStream, Entity> {
-
+    DocumentParser<Object> rejectAll = (context, input) -> {
+      throw new UnsupportedOperationException(
+          "No script found for mime type: " + context.getMimeType());
+    };
+    DocumentParser<Object> emptyParser = (context, input) -> new Object();
   }
 
   public interface LinkExtractor<Entity> extends BiFunction<CrawlContext, Entity, String[]> {
-
+    LinkExtractor<Object> noLinks = (context, doc) -> new String[0];
   }
 
   public interface AssertionFunction<Entity> extends
@@ -22,7 +26,7 @@ public final class Script<Doc> {
 
   public static final class Result {
 
-    public static final Result empty = new Result(new String[]{}, new AssertionResult[]{});
+    public static final Result empty = new Result(new String[0], new AssertionResult[0]);
 
     private final String[] links;
     private final AssertionResult[] assertionResults;
@@ -44,18 +48,15 @@ public final class Script<Doc> {
     }
   }
 
-  public static final Script<Object> throwOnEverything = new Script<>(
-      (context, input) -> {
-        throw new UnsupportedOperationException(
-            "No script found for mime type: " + context.getMimeType());
-      },
-      (context, entity) -> new String[0],
+  public static final Script<Object> rejectAll = new Script<>(
+      DocumentParser.rejectAll,
+      LinkExtractor.noLinks,
       new ArrayList<>()
   );
 
-  public static final Script<Object> acceptEverything = new Script<>(
-      (context, input) -> new Object(),
-      (context, entity) -> new String[0],
+  public static final Script<Object> acceptAll = new Script<>(
+      DocumentParser.emptyParser,
+      LinkExtractor.noLinks,
       new ArrayList<>()
   );
 
