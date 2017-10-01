@@ -3,6 +3,7 @@ package io.lepo.lukki.http;
 import io.lepo.lukki.core.CrawlClient;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -46,10 +47,15 @@ public final class HttpClient implements CrawlClient {
             }
 
             ContentType contentType = ContentType.getOrDefault(entity);
+            String mimeType = contentType.getMimeType();
+            Charset charset = contentType.getCharset();
+            if (charset == null) {
+              charset = Charset.defaultCharset();
+            }
 
             try (InputStream input = entity.getContent()) {
               log.debug("Got content with content type [{}]", contentType);
-              callback.onSuccess(contentType.getMimeType(), contentType.getCharset(), input);
+              callback.onSuccess(mimeType, charset, input);
             } catch (IOException ex) {
               log.debug("Failed to read content for URL [{}]. Reason: {}", url, ex.getMessage());
               callback.onFailure(ex);
