@@ -20,6 +20,30 @@ public final class Script<Entity> {
 
   }
 
+  public static final class Result {
+
+    public static final Result empty = new Result(new String[]{}, new AssertionResult[]{});
+
+    private final String[] links;
+    private final AssertionResult[] assertionResults;
+
+    public Result(
+        String[] links,
+        AssertionResult[] assertionResults
+    ) {
+      this.links = links;
+      this.assertionResults = assertionResults;
+    }
+
+    public String[] getLinks() {
+      return links;
+    }
+
+    public AssertionResult[] getAssertionResults() {
+      return assertionResults;
+    }
+  }
+
   public static final Script<Object> throwOnEverything = new Script<>(
       (context, input) -> {
         throw new UnsupportedOperationException(
@@ -49,7 +73,7 @@ public final class Script<Entity> {
     this.assertionFunctions = assertionFunctions;
   }
 
-  public ScriptRegistry.Result run(CrawlContext context, InputStream input) {
+  public Result run(CrawlContext context, InputStream input) {
     Entity entity = parser.apply(context, input);
     String[] links = linkExtractor.apply(context, entity);
 
@@ -60,6 +84,6 @@ public final class Script<Entity> {
       assertionResults[i] = assertionResult;
     }
 
-    return new ScriptRegistry.Result(links, assertionResults);
+    return new Result(links, assertionResults);
   }
 }

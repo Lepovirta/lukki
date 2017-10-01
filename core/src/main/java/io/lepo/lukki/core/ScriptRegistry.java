@@ -6,30 +6,6 @@ import java.util.Map;
 
 public final class ScriptRegistry {
 
-  public static final class Result {
-
-    public static final Result empty = new Result(new String[]{}, new AssertionResult[]{});
-
-    private final String[] links;
-    private final AssertionResult[] assertionResults;
-
-    public Result(
-        String[] links,
-        AssertionResult[] assertionResults
-    ) {
-      this.links = links;
-      this.assertionResults = assertionResults;
-    }
-
-    public String[] getLinks() {
-      return links;
-    }
-
-    public AssertionResult[] getAssertionResults() {
-      return assertionResults;
-    }
-  }
-
   private final Map<String, Script<?>> scripts;
   private final Script<?> defaultScript;
 
@@ -38,7 +14,7 @@ public final class ScriptRegistry {
     this.defaultScript = defaultScript;
   }
 
-  public Result run(CrawlContext context, InputStream input) {
+  public Script.Result run(CrawlContext context, InputStream input) {
     Script<?> script = scripts.getOrDefault(context.getMimeType(), defaultScript);
     return script.run(context, input);
   }

@@ -71,7 +71,7 @@ public final class CrawlEngine implements Consumer<String> {
           CrawlContext context = new CrawlContext(originUrl, url, mimeType, charset);
 
           log.debug("Executing handler for mime type [{}] and URL [{}]", mimeType, url);
-          ScriptRegistry.Result scriptResult = registry.run(context, input);
+          Script.Result scriptResult = registry.run(context, input);
 
           String[] links = scriptResult.getLinks();
           log.debug("Found {} URLs from URL [{}]", links.length, url);
