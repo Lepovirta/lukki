@@ -1,5 +1,15 @@
 import org.junit.platform.gradle.plugin.JUnitPlatformPlugin
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath group: 'org.junit.platform', name: 'junit-platform-gradle-plugin', version: '1.0.0'
+    }
+}
+
 project.ext {
     groupName = 'io.lepo'
     pomConfig = {
@@ -28,17 +38,10 @@ project.ext {
     }
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'org.junit.platform', name: 'junit-platform-gradle-plugin', version: '1.0.0'
-    }
-}
+apply plugin: 'io.lepo.lukki.gitversion'
 
-allprojects {
-    project.version = '0.1-SNAPSHOT'
+subprojects {
+    project.version = project.gitVersion
 
     plugins.withType(JavaPlugin).whenPluginAdded {
         group project.groupName
