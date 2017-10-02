@@ -5,9 +5,48 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
-public final class Script<Doc> {
+public final class Script<DocT> {
 
-  public interface DocumentParser<Entity> extends BiFunction<CrawlContext, InputStream, Entity> {
+  public static final Script<Object> rejectAll = new Script<>(
+      DocumentParser.rejectAll,
+      LinkExtractor.noLinks,
+      new ArrayList<>()
+  );
+  public static final Script<Object> acceptAll = new Script<>(
+      DocumentParser.emptyParser,
+      LinkExtractor.noLinks,
+      new ArrayList<>()
+  );
+  private final DocumentParser<DocT> parser;
+  private final LinkExtractor<DocT> linkExtractor;
+  private final List<AssertionFunction<DocT>> assertionFunctions;
+
+  public Script(
+      DocumentParser<DocT> parser,
+      LinkExtractor<DocT> linkExtractor,
+      List<AssertionFunction<DocT>> assertionFunctions
+  ) {
+    this.parser = parser;
+    this.linkExtractor = linkExtractor;
+    this.assertionFunctions = assertionFunctions;
+  }
+
+  public Result run(CrawlContext context, InputStream input) {
+    DocT doc = parser.apply(context, input);
+    String[] links = linkExtractor.apply(context, doc);
+
+    AssertionResult[] assertionResults = new AssertionResult[assertionFunctions.size()];
+
+    for (int i = 0; i < assertionFunctions.size(); i++) {
+      AssertionResult assertionResult = assertionFunctions.get(i).apply(context, doc);
+      assertionResults[i] = assertionResult;
+    }
+
+    return new Result(links, assertionResults);
+  }
+
+  public interface DocumentParser<DocT> extends BiFunction<CrawlContext, InputStream, DocT> {
+
     DocumentParser<Object> rejectAll = (context, input) -> {
       throw new UnsupportedOperationException(
           "No script found for mime type: " + context.getMimeType());
@@ -15,12 +54,13 @@ public final class Script<Doc> {
     DocumentParser<Object> emptyParser = (context, input) -> new Object();
   }
 
-  public interface LinkExtractor<Entity> extends BiFunction<CrawlContext, Entity, String[]> {
+  public interface LinkExtractor<DocT> extends BiFunction<CrawlContext, DocT, String[]> {
+
     LinkExtractor<Object> noLinks = (context, doc) -> new String[0];
   }
 
-  public interface AssertionFunction<Entity> extends
-      BiFunction<CrawlContext, Entity, AssertionResult> {
+  public interface AssertionFunction<DocT> extends
+      BiFunction<CrawlContext, DocT, AssertionResult> {
 
   }
 
@@ -46,45 +86,5 @@ public final class Script<Doc> {
     public AssertionResult[] getAssertionResults() {
       return assertionResults;
     }
-  }
-
-  public static final Script<Object> rejectAll = new Script<>(
-      DocumentParser.rejectAll,
-      LinkExtractor.noLinks,
-      new ArrayList<>()
-  );
-
-  public static final Script<Object> acceptAll = new Script<>(
-      DocumentParser.emptyParser,
-      LinkExtractor.noLinks,
-      new ArrayList<>()
-  );
-
-  private final DocumentParser<Doc> parser;
-  private final LinkExtractor<Doc> linkExtractor;
-  private final List<AssertionFunction<Doc>> assertionFunctions;
-
-  public Script(
-      DocumentParser<Doc> parser,
-      LinkExtractor<Doc> linkExtractor,
-      List<AssertionFunction<Doc>> assertionFunctions
-  ) {
-    this.parser = parser;
-    this.linkExtractor = linkExtractor;
-    this.assertionFunctions = assertionFunctions;
-  }
-
-  public Result run(CrawlContext context, InputStream input) {
-    Doc doc = parser.apply(context, input);
-    String[] links = linkExtractor.apply(context, doc);
-
-    AssertionResult[] assertionResults = new AssertionResult[assertionFunctions.size()];
-
-    for (int i = 0; i < assertionFunctions.size(); i++) {
-      AssertionResult assertionResult = assertionFunctions.get(i).apply(context, doc);
-      assertionResults[i] = assertionResult;
-    }
-
-    return new Result(links, assertionResults);
   }
 }

@@ -15,12 +15,12 @@ public class Html {
 
   public static final String mimeType = "text/html";
 
+  private Html() {
+  }
+
   public static Script<Document> script(
       List<Script.AssertionFunction<Document>> assertionFunctions
   ) {
     return new Script<>(parser, linkExtractor, assertionFunctions);
-  }
-
-  private Html() {
   }
 }

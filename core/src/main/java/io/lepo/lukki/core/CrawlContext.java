@@ -39,10 +39,10 @@ public final class CrawlContext {
 
   @Override
   public String toString() {
-    return "CrawlContext{" +
-        "originUrl='" + originUrl + '\'' +
-        ", url='" + url + '\'' +
-        ", mimeType='" + mimeType + '\'' +
-        '}';
+    return "CrawlContext{"
+        + "originUrl='" + originUrl + '\''
+        + ", url='" + url + '\''
+        + ", mimeType='" + mimeType + '\''
+        + '}';
   }
 }

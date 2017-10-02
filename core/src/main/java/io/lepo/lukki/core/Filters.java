@@ -28,7 +28,8 @@ public final class Filters {
 
     DocumentFilter skipNone = (context) -> true;
     DocumentFilter skipAll = (context) -> false;
-    DocumentFilter skipForeignHost = (context) -> hasSameHost(context.getOriginUrl(), context.getUrl());
+    DocumentFilter skipForeignHost = (context) ->
+        hasSameHost(context.getOriginUrl(), context.getUrl());
   }
 
   private final LinkFilter linkFilter;
