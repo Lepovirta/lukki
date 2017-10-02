@@ -26,10 +26,10 @@ public final class AssertionResult {
 
   @Override
   public String toString() {
-    return "AssertionResult{" +
-        "name='" + name + '\'' +
-        ", result='" + result + '\'' +
-        ", successful=" + successful +
-        '}';
+    return "AssertionResult{"
+        + "name='" + name + '\''
+        + ", result='" + result + '\''
+        + ", successful=" + successful
+        + '}';
   }
 }

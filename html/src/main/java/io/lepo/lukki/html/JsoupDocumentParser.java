@@ -18,8 +18,8 @@ final class JsoupDocumentParser implements Script.DocumentParser<Document> {
     try {
       log.debug("Parsing document from URL [{}] with JSOUP", crawlContext.getUrl());
       return Jsoup.parse(input, crawlContext.getCharset().name(), crawlContext.getUrl());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
     }
   }
 }

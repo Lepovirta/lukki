@@ -1,6 +1,5 @@
 package io.lepo.lukki.core;
 
-
 import java.util.Arrays;
 
 public final class CrawlResult {
@@ -22,6 +21,20 @@ public final class CrawlResult {
     this.assertionResults = assertionResults;
   }
 
+  public static CrawlResult success(
+      String url,
+      AssertionResult[] assertionResults
+  ) {
+    return new CrawlResult(url, true, "", assertionResults);
+  }
+
+  public static CrawlResult failure(
+      String url,
+      String summary
+  ) {
+    return new CrawlResult(url, false, summary, new AssertionResult[]{});
+  }
+
   public String getUrl() {
     return url;
   }
@@ -36,25 +49,11 @@ public final class CrawlResult {
 
   @Override
   public String toString() {
-    return "CrawlResult{" +
-        "url='" + url + '\'' +
-        ", fetchOk=" + fetchOk +
-        ", summary='" + summary + '\'' +
-        ", assertionResults=" + Arrays.toString(assertionResults) +
-        '}';
-  }
-
-  public static CrawlResult success(
-      String url,
-      AssertionResult[] assertionResults
-  ) {
-    return new CrawlResult(url, true, "", assertionResults);
-  }
-
-  public static CrawlResult failure(
-      String url,
-      String summary
-  ) {
-    return new CrawlResult(url, false, summary, new AssertionResult[]{});
+    return "CrawlResult{"
+        + "url='" + url + '\''
+        + ", fetchOk=" + fetchOk
+        + ", summary='" + summary + '\''
+        + ", assertionResults=" + Arrays.toString(assertionResults)
+        + '}';
   }
 }

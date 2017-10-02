@@ -121,9 +121,9 @@ public final class CrawlEngine implements Consumer<String> {
         );
 
         System.out.println(crawlResult); // TODO
-      } catch (Exception e) {
-        log.debug("Execution of successful fetch failed!", e);
-        handleFailure(e);
+      } catch (Exception ex) {
+        log.debug("Execution of successful fetch failed!", ex);
+        handleFailure(ex);
       }
     }
 
