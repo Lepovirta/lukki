@@ -22,6 +22,6 @@ public class Main {
         scriptRegistry,
         new Filters(Filters.LinkFilter.skipNone, Filters.DocumentFilter.skipForeignHost)
     );
-    crawler.run("https://lepo.io/");
+    crawler.run(args[0]);
   }
 }
