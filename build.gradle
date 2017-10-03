@@ -38,7 +38,7 @@ project.ext {
     }
 }
 
-apply plugin: 'io.lepo.lukki.gitversion'
+apply plugin: 'gitversion'
 
 subprojects {
     project.version = project.gitVersion
