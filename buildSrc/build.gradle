@@ -7,6 +7,5 @@ repositories {
 dependencies {
     compile gradleApi()
     compile localGroovy()
-    compile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '4.8.0.201706111038-r'
 }
 
