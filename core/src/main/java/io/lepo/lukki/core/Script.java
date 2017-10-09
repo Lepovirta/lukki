@@ -1,6 +1,7 @@
 package io.lepo.lukki.core;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -33,7 +34,7 @@ public final class Script<DocT> {
 
   public Result run(CrawlContext context, InputStream input) {
     DocT doc = parser.apply(context, input);
-    String[] links = linkExtractor.apply(context, doc);
+    URI[] links = linkExtractor.apply(context, doc);
 
     AssertionResult[] assertionResults = new AssertionResult[assertionFunctions.size()];
 
@@ -54,32 +55,33 @@ public final class Script<DocT> {
     DocumentParser<Object> emptyParser = (context, input) -> new Object();
   }
 
-  public interface LinkExtractor<DocT> extends BiFunction<CrawlContext, DocT, String[]> {
+  public interface LinkExtractor<DocT>
+      extends BiFunction<CrawlContext, DocT, URI[]> {
 
-    LinkExtractor<Object> noLinks = (context, doc) -> new String[0];
+    LinkExtractor<Object> noLinks = (context, doc) -> new URI[0];
   }
 
-  public interface AssertionFunction<DocT> extends
-      BiFunction<CrawlContext, DocT, AssertionResult> {
+  public interface AssertionFunction<DocT>
+      extends BiFunction<CrawlContext, DocT, AssertionResult> {
 
   }
 
   public static final class Result {
 
-    public static final Result empty = new Result(new String[0], new AssertionResult[0]);
+    public static final Result empty = new Result(new URI[0], new AssertionResult[0]);
 
-    private final String[] links;
+    private final URI[] links;
     private final AssertionResult[] assertionResults;
 
     public Result(
-        String[] links,
+        URI[] links,
         AssertionResult[] assertionResults
     ) {
       this.links = links;
       this.assertionResults = assertionResults;
     }
 
-    public String[] getLinks() {
+    public URI[] getLinks() {
       return links;
     }
 

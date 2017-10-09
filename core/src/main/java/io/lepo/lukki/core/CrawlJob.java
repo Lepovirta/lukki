@@ -1,28 +1,28 @@
 package io.lepo.lukki.core;
 
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 
 public class CrawlJob {
 
-  private final String url;
+  private final URI uri;
   private final Set<String> siteHosts;
   private final Set<String> siteHostPrefixes;
 
   public CrawlJob(
-      String url,
+      URI uri,
       Set<String> siteHosts,
       Set<String> siteHostPrefixes
   ) {
-    this.url = url;
+    this.uri = uri;
     this.siteHosts = Collections.unmodifiableSet(siteHosts);
     this.siteHostPrefixes = Collections.unmodifiableSet(siteHostPrefixes);
   }
 
-  public String getUrl() {
-    return url;
+  public URI getUri() {
+    return uri;
   }
 
   public Set<String> getSiteHosts() {
@@ -37,29 +37,28 @@ public class CrawlJob {
     return siteHosts.contains(host) || siteHostPrefixes.stream().anyMatch(host::endsWith);
   }
 
-  public boolean isSiteUrl(String url) {
-    try {
-      String host = new URL(url).getHost();
-      return isSiteHost(host);
-    } catch (MalformedURLException ex) {
-      return false;
-    }
+  public boolean isSiteUri(URI uri) {
+    String host = uri.getHost();
+    return isSiteHost(host);
   }
 
   @Override
   public String toString() {
     return "CrawlJob{"
-        + "url='" + url + '\''
+        + "uri='" + uri + '\''
         + '}';
   }
 
-  public static CrawlJob withOnlyUrlHost(String url) throws MalformedURLException {
-    String host = new URL(url).getHost();
-    return new CrawlJob(url, Collections.singleton(host), Collections.emptySet());
+  public static CrawlJob withOnlyUrlHost(URI uri) {
+    return new CrawlJob(
+        uri,
+        Collections.singleton(uri.getHost()),
+        Collections.emptySet()
+    );
   }
 
-  public static CrawlJob withHostsStartingWithUrlHost(String url) throws MalformedURLException {
-    String host = new URL(url).getHost();
-    return new CrawlJob(url, Collections.singleton(host), Collections.singleton(host));
+  public static CrawlJob withHostsStartingWithUrlHost(URI uri) throws MalformedURLException {
+    Set<String> hosts = Collections.singleton(uri.getHost());
+    return new CrawlJob(uri, hosts, hosts);
   }
 }

@@ -7,6 +7,7 @@ import io.lepo.lukki.core.Script;
 import io.lepo.lukki.core.ScriptRegistry;
 import io.lepo.lukki.html.Html;
 import io.lepo.lukki.http.HttpClient;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,11 +19,12 @@ public class Main {
     scripts.put(Html.mimeType, Html.script(new ArrayList<>()));
     ScriptRegistry scriptRegistry = ScriptRegistry.lenient(scripts);
 
+    URI uri = URI.create(args[0]);
     CrawlEngine crawler = new CrawlEngine(
         new HttpClient(),
         scriptRegistry,
         new Filters(Filters.LinkFilter.skipNone, Filters.DocumentFilter.skipForeignHost)
     );
-    crawler.run(CrawlJob.withHostsStartingWithUrlHost(args[0]));
+    crawler.run(CrawlJob.withHostsStartingWithUrlHost(uri));
   }
 }

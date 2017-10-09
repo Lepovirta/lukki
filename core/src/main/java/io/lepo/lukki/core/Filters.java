@@ -1,22 +1,23 @@
 package io.lepo.lukki.core;
 
+import java.net.URI;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 public final class Filters {
 
-  public interface LinkFilter extends BiPredicate<CrawlContext, String> {
+  public interface LinkFilter extends BiPredicate<CrawlContext, URI> {
 
     LinkFilter skipNone = (context, link) -> true;
     LinkFilter skipAll = (context, link) -> false;
-    LinkFilter skipForeignHost = (context, link) -> context.getJob().isSiteUrl(link);
+    LinkFilter skipForeignHost = (context, link) -> context.getJob().isSiteUri(link);
   }
 
   public interface DocumentFilter extends Predicate<CrawlContext> {
 
     DocumentFilter skipNone = (context) -> true;
     DocumentFilter skipAll = (context) -> false;
-    DocumentFilter skipForeignHost = (context) -> context.getJob().isSiteUrl(context.getUrl());
+    DocumentFilter skipForeignHost = (context) -> context.getJob().isSiteUri(context.getUri());
   }
 
   private final LinkFilter linkFilter;
@@ -34,7 +35,7 @@ public final class Filters {
     return documentFilter.test(context);
   }
 
-  public boolean shouldProcessLink(CrawlContext context, String link) {
+  public boolean shouldProcessLink(CrawlContext context, URI link) {
     return linkFilter.test(context, link);
   }
 }

@@ -16,8 +16,8 @@ final class JsoupDocumentParser implements Script.DocumentParser<Document> {
   @Override
   public Document apply(CrawlContext crawlContext, InputStream input) {
     try {
-      log.debug("Parsing document from URL [{}] with JSOUP", crawlContext.getUrl());
-      return Jsoup.parse(input, crawlContext.getCharset().name(), crawlContext.getUrl());
+      log.debug("Parsing document from URL [{}] with JSOUP", crawlContext.getUri());
+      return Jsoup.parse(input, crawlContext.getCharset().name(), crawlContext.getUri().toString());
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }

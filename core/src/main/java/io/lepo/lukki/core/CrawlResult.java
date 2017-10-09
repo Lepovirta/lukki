@@ -1,42 +1,43 @@
 package io.lepo.lukki.core;
 
+import java.net.URI;
 import java.util.Arrays;
 
 public final class CrawlResult {
 
-  private final String url;
+  private final URI uri;
   private final boolean fetchOk;
   private final String summary;
   private final AssertionResult[] assertionResults;
 
   private CrawlResult(
-      String url,
+      URI uri,
       boolean fetchOk,
       String summary,
       AssertionResult[] assertionResults
   ) {
-    this.url = url;
+    this.uri = uri;
     this.fetchOk = fetchOk;
     this.summary = summary;
     this.assertionResults = assertionResults;
   }
 
   public static CrawlResult success(
-      String url,
+      URI uri,
       AssertionResult[] assertionResults
   ) {
-    return new CrawlResult(url, true, "", assertionResults);
+    return new CrawlResult(uri, true, "", assertionResults);
   }
 
   public static CrawlResult failure(
-      String url,
+      URI uri,
       String summary
   ) {
-    return new CrawlResult(url, false, summary, new AssertionResult[]{});
+    return new CrawlResult(uri, false, summary, new AssertionResult[]{});
   }
 
-  public String getUrl() {
-    return url;
+  public URI getUri() {
+    return uri;
   }
 
   public boolean isFetchOk() {
@@ -50,7 +51,7 @@ public final class CrawlResult {
   @Override
   public String toString() {
     return "CrawlResult{"
-        + "url='" + url + '\''
+        + "uri='" + uri + '\''
         + ", fetchOk=" + fetchOk
         + ", summary='" + summary + '\''
         + ", assertionResults=" + Arrays.toString(assertionResults)
