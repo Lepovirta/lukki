@@ -1,6 +1,7 @@
 package io.lepo.lukki.cli;
 
 import io.lepo.lukki.core.CrawlEngine;
+import io.lepo.lukki.core.CrawlJob;
 import io.lepo.lukki.core.Filters;
 import io.lepo.lukki.core.Script;
 import io.lepo.lukki.core.ScriptRegistry;
@@ -12,7 +13,7 @@ import java.util.Map;
 
 public class Main {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     Map<String, Script<?>> scripts = new HashMap<>();
     scripts.put(Html.mimeType, Html.script(new ArrayList<>()));
     ScriptRegistry scriptRegistry = ScriptRegistry.lenient(scripts);
@@ -22,6 +23,6 @@ public class Main {
         scriptRegistry,
         new Filters(Filters.LinkFilter.skipNone, Filters.DocumentFilter.skipForeignHost)
     );
-    crawler.run(args[0]);
+    crawler.run(CrawlJob.withHostsStartingWithUrlHost(args[0]));
   }
 }
