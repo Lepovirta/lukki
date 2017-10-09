@@ -3,6 +3,7 @@ package io.lepo.lukki.http;
 import io.lepo.lukki.core.CrawlClient;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.Charset;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -31,17 +32,17 @@ public final class HttpClient implements CrawlClient {
   }
 
   @Override
-  public void accept(String url, Callback callback) {
+  public void accept(URI uri, Callback callback) {
     try {
-      log.debug("Building HTTP get for URL [{}].", url);
-      HttpGet get = new HttpGet(url);
+      log.debug("Building HTTP get for URI [{}].", uri);
+      HttpGet get = new HttpGet(uri);
       client.execute(get, new FutureCallback<HttpResponse>() {
         @Override
         public void completed(HttpResponse result) {
           try {
             HttpEntity entity = result.getEntity();
             if (entity == null) {
-              log.debug("No entity available for URL [{}]", url);
+              log.debug("No entity available for URI [{}]", uri);
               callback.empty();
               return;
             }
@@ -57,13 +58,13 @@ public final class HttpClient implements CrawlClient {
               log.debug("Got content with content type [{}]", contentType);
               callback.onSuccess(mimeType, charset, input);
             } catch (IOException ex) {
-              log.debug("Failed to read content for URL [{}]. Reason: {}", url, ex.getMessage());
+              log.debug("Failed to read content for URI [{}]. Reason: {}", uri, ex.getMessage());
               callback.onFailure(ex);
             }
           } catch (Exception ex) {
             log.debug(
-                "Failure happened while handling the result for URL [{}]: Reason: {}",
-                url,
+                "Failure happened while handling the result for URI [{}]: Reason: {}",
+                uri,
                 ex.getMessage()
             );
             callback.onFailure(ex);
@@ -72,20 +73,20 @@ public final class HttpClient implements CrawlClient {
 
         @Override
         public void failed(Exception ex) {
-          log.debug("Failed HTTP GET for URL [{}]. Reason: {}", url, ex.getMessage());
+          log.debug("Failed HTTP GET for URI [{}]. Reason: {}", uri, ex.getMessage());
           callback.onFailure(ex);
         }
 
         @Override
         public void cancelled() {
-          log.debug("Cancelled HTTP GET for URL [{}]", url);
+          log.debug("Cancelled HTTP GET for URI [{}]", uri);
           callback.onFailure(new RuntimeException("Cancelled HTTP GET"));
         }
       });
     } catch (IllegalArgumentException ex) {
       log.debug(
           "Caught failure before executing HTTP client request."
-              + "Most likely caused by invalid URL."
+              + "Most likely caused by invalid URI."
       );
       callback.onFailure(ex);
     }

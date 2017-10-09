@@ -2,10 +2,11 @@ package io.lepo.lukki.core;
 
 import io.lepo.lukki.core.Filters.DocumentFilter;
 import io.lepo.lukki.core.Filters.LinkFilter;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.assertj.core.api.Assertions;
 
 class FiltersTests {
 
@@ -27,22 +28,26 @@ class FiltersTests {
   @DisplayName("LinkFilter.skipForeignHost")
   void skipForeignHostLinkFilter() throws Exception {
     for (String[] links : linksShouldNotSkip) {
-      CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(links[0]);
-      CrawlContext context = createContext(job, links[0]);
+      URI originUri = URI.create(links[0]);
+      URI uri = URI.create(links[1]);
+      CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(originUri);
+      CrawlContext context = createContext(job, originUri);
 
       Assertions
-          .assertThat(LinkFilter.skipForeignHost.test(context, links[1]))
-          .as("no skip: %s - %s", links[0], links[1])
+          .assertThat(LinkFilter.skipForeignHost.test(context, uri))
+          .as("no skip: %s - %s", originUri, uri)
           .isTrue();
     }
 
     for (String[] links : linksShouldSkip) {
-      CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(links[0]);
-      CrawlContext context = createContext(job, links[0]);
+      URI originUri = URI.create(links[0]);
+      URI uri = URI.create(links[1]);
+      CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(originUri);
+      CrawlContext context = createContext(job, originUri);
 
       Assertions
-          .assertThat(LinkFilter.skipForeignHost.test(context, links[1]))
-          .as("skip: %s - %s", links[0], links[1])
+          .assertThat(LinkFilter.skipForeignHost.test(context, uri))
+          .as("skip: %s - %s", originUri, uri)
           .isFalse();
     }
   }
@@ -51,8 +56,10 @@ class FiltersTests {
   @DisplayName("DocumentFilter.skipForeignHost")
   void skipForeignHostDocumentFilter() throws Exception {
     for (String[] links : linksShouldNotSkip) {
-      CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(links[0]);
-      CrawlContext context = createContext(job, links[1]);
+      URI originUri = URI.create(links[0]);
+      URI uri = URI.create(links[1]);
+      CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(originUri);
+      CrawlContext context = createContext(job, uri);
 
       Assertions
           .assertThat(DocumentFilter.skipForeignHost.test(context))
@@ -61,17 +68,19 @@ class FiltersTests {
     }
 
     for (String[] links : linksShouldSkip) {
-      CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(links[0]);
-      CrawlContext context = createContext(job, links[1]);
+      URI originUri = URI.create(links[0]);
+      URI uri = URI.create(links[1]);
+      CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(originUri);
+      CrawlContext context = createContext(job, uri);
 
       Assertions
           .assertThat(DocumentFilter.skipForeignHost.test(context))
-          .as("skip: %s - %s", links[0], links[1])
+          .as("skip: %s - %s", originUri, uri)
           .isFalse();
     }
   }
 
-  private CrawlContext createContext(CrawlJob job, String url) {
+  private CrawlContext createContext(CrawlJob job, URI url) {
     return new CrawlContext(
         job, url,
         "text/html", StandardCharsets.UTF_8

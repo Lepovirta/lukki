@@ -3,6 +3,7 @@ package io.lepo.lukki.core;
 import io.lepo.lukki.core.CrawlClient.Callback;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -40,7 +41,7 @@ public final class CrawlEngine implements Consumer<CrawlJob> {
     log.debug("Starting");
     client.start();
 
-    enqueueUrl(job, job.getUrl());
+    enqueueUrl(job, job.getUri());
     phaser.arriveAndAwaitAdvance();
 
     log.debug("Finished. Closing.");
@@ -54,25 +55,25 @@ public final class CrawlEngine implements Consumer<CrawlJob> {
     log.debug("Closed.");
   }
 
-  private void enqueueUrl(final CrawlJob job, final String url) {
+  private void enqueueUrl(final CrawlJob job, final URI uri) {
     visitedUrls.computeIfAbsent(
-        url,
+        uri.toString(),
         k -> {
-          log.debug("Enqueuing fetch for URL: {}", url);
+          log.debug("Enqueuing fetch for URL: {}", uri);
           phaser.register();
-          pool.execute(() -> fetchUrl(job, url));
+          pool.execute(() -> fetchUrl(job, uri));
           return true;
         }
     );
   }
 
-  private void fetchUrl(final CrawlJob job, final String url) {
+  private void fetchUrl(final CrawlJob job, final URI uri) {
     Callback[] callbacks = {
-        new HandleFetch(job, url),
+        new HandleFetch(job, uri),
         new AfterFetch()
     };
     client.accept(
-        url,
+        uri,
         CrawlClient.Callback.sequence(callbacks)
     );
   }
@@ -85,38 +86,38 @@ public final class CrawlEngine implements Consumer<CrawlJob> {
   private class HandleFetch implements CrawlClient.Callback {
 
     private final CrawlJob job;
-    private final String url;
+    private final URI uri;
 
-    HandleFetch(CrawlJob job, String url) {
+    HandleFetch(CrawlJob job, URI uri) {
       this.job = job;
-      this.url = url;
+      this.uri = uri;
     }
 
     @Override
     public void onSuccess(String mimeType, Charset charset, InputStream input) {
-      CrawlContext context = new CrawlContext(job, url, mimeType, charset);
+      CrawlContext context = new CrawlContext(job, uri, mimeType, charset);
 
       if (!filters.shouldProcessDocument(context)) {
-        log.debug("Skipping handling for document at URL [{}]", url);
+        log.debug("Skipping handling for document at URI [{}]", uri);
         return; // TODO
       }
 
       try {
-        log.debug("Executing handler for mime type [{}] and URL [{}]", mimeType, url);
+        log.debug("Executing handler for mime type [{}] and URI [{}]", mimeType, uri);
         Script.Result scriptResult = registry.run(context, input);
 
-        String[] links = scriptResult.getLinks();
-        log.debug("Found {} URLs from URL [{}]", links.length, url);
-        for (String link : links) {
+        URI[] links = scriptResult.getLinks();
+        log.debug("Found {} URIs from URI [{}]", links.length, uri);
+        for (URI link : links) {
           if (filters.shouldProcessLink(context, link)) {
             enqueueUrl(job, link);
           } else {
-            log.debug("Skipping fetching of URL [{}]", url);
+            log.debug("Skipping fetching of URI [{}]", uri);
           }
         }
 
         CrawlResult crawlResult = CrawlResult.success(
-            url,
+            uri,
             scriptResult.getAssertionResults()
         );
 
@@ -129,13 +130,13 @@ public final class CrawlEngine implements Consumer<CrawlJob> {
 
     @Override
     public void onFailure(Exception ex) {
-      log.debug("Fetch failed for URL [{}]", ex);
+      log.debug("Fetch failed for URI [{}]", ex);
       handleFailure(ex);
     }
 
     private void handleFailure(Exception ex) {
       CrawlResult crawlResult = CrawlResult.failure(
-          url,
+          uri,
           ex.getMessage()
       );
       System.out.println(crawlResult); // TODO

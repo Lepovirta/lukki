@@ -2,13 +2,14 @@ package io.lepo.lukki.core;
 
 import java.io.Closeable;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.function.BiConsumer;
 
 public interface CrawlClient
     extends
     Closeable,
-    BiConsumer<String, CrawlClient.Callback> {
+    BiConsumer<URI, CrawlClient.Callback> {
 
   interface Callback {
 
