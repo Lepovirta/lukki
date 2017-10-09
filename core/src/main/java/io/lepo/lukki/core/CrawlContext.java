@@ -4,25 +4,25 @@ import java.nio.charset.Charset;
 
 public final class CrawlContext {
 
-  private final String originUrl;
+  private final CrawlJob job;
   private final String url;
   private final String mimeType;
   private final Charset charset;
 
   public CrawlContext(
-      String originUrl,
+      CrawlJob job,
       String url,
       String mimeType,
       Charset charset
   ) {
-    this.originUrl = originUrl;
+    this.job = job;
     this.url = url;
     this.mimeType = mimeType;
     this.charset = charset;
   }
 
-  public String getOriginUrl() {
-    return originUrl;
+  public CrawlJob getJob() {
+    return job;
   }
 
   public String getUrl() {
@@ -40,7 +40,7 @@ public final class CrawlContext {
   @Override
   public String toString() {
     return "CrawlContext{"
-        + "originUrl='" + originUrl + '\''
+        + "job='" + job.toString() + '\''
         + ", url='" + url + '\''
         + ", mimeType='" + mimeType + '\''
         + '}';

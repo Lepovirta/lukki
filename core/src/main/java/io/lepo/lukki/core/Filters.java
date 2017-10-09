@@ -1,35 +1,22 @@
 package io.lepo.lukki.core;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 public final class Filters {
 
-  private static boolean hasSameHost(String url1, String url2) {
-    try {
-      String host1 = new URL(url1).getHost();
-      String host2 = new URL(url2).getHost();
-      return host1.equals(host2);
-    } catch (MalformedURLException ex) {
-      throw new RuntimeException(ex);
-    }
-  }
-
   public interface LinkFilter extends BiPredicate<CrawlContext, String> {
 
     LinkFilter skipNone = (context, link) -> true;
     LinkFilter skipAll = (context, link) -> false;
-    LinkFilter skipForeignHost = (context, link) -> hasSameHost(context.getOriginUrl(), link);
+    LinkFilter skipForeignHost = (context, link) -> context.getJob().isSiteUrl(link);
   }
 
   public interface DocumentFilter extends Predicate<CrawlContext> {
 
     DocumentFilter skipNone = (context) -> true;
     DocumentFilter skipAll = (context) -> false;
-    DocumentFilter skipForeignHost = (context) ->
-        hasSameHost(context.getOriginUrl(), context.getUrl());
+    DocumentFilter skipForeignHost = (context) -> context.getJob().isSiteUrl(context.getUrl());
   }
 
   private final LinkFilter linkFilter;

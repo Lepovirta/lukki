@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class CrawlEngine implements Consumer<String> {
+public final class CrawlEngine implements Consumer<CrawlJob> {
 
   private static final Logger log = LoggerFactory.getLogger(CrawlEngine.class);
 
@@ -36,11 +36,11 @@ public final class CrawlEngine implements Consumer<String> {
     this.registry = registry;
   }
 
-  public void run(String originUrl) {
+  public void run(CrawlJob job) {
     log.debug("Starting");
     client.start();
 
-    enqueueUrl(originUrl, originUrl);
+    enqueueUrl(job, job.getUrl());
     phaser.arriveAndAwaitAdvance();
 
     log.debug("Finished. Closing.");
@@ -54,21 +54,21 @@ public final class CrawlEngine implements Consumer<String> {
     log.debug("Closed.");
   }
 
-  private void enqueueUrl(final String originUrl, final String url) {
+  private void enqueueUrl(final CrawlJob job, final String url) {
     visitedUrls.computeIfAbsent(
         url,
         k -> {
           log.debug("Enqueuing fetch for URL: {}", url);
           phaser.register();
-          pool.execute(() -> fetchUrl(originUrl, url));
+          pool.execute(() -> fetchUrl(job, url));
           return true;
         }
     );
   }
 
-  private void fetchUrl(final String originUrl, final String url) {
+  private void fetchUrl(final CrawlJob job, final String url) {
     Callback[] callbacks = {
-        new HandleFetch(originUrl, url),
+        new HandleFetch(job, url),
         new AfterFetch()
     };
     client.accept(
@@ -78,23 +78,23 @@ public final class CrawlEngine implements Consumer<String> {
   }
 
   @Override
-  public void accept(String originUrl) {
-    run(originUrl);
+  public void accept(CrawlJob job) {
+    run(job);
   }
 
   private class HandleFetch implements CrawlClient.Callback {
 
-    private final String originUrl;
+    private final CrawlJob job;
     private final String url;
 
-    HandleFetch(String originUrl, String url) {
-      this.originUrl = originUrl;
+    HandleFetch(CrawlJob job, String url) {
+      this.job = job;
       this.url = url;
     }
 
     @Override
     public void onSuccess(String mimeType, Charset charset, InputStream input) {
-      CrawlContext context = new CrawlContext(originUrl, url, mimeType, charset);
+      CrawlContext context = new CrawlContext(job, url, mimeType, charset);
 
       if (!filters.shouldProcessDocument(context)) {
         log.debug("Skipping handling for document at URL [{}]", url);
@@ -109,7 +109,7 @@ public final class CrawlEngine implements Consumer<String> {
         log.debug("Found {} URLs from URL [{}]", links.length, url);
         for (String link : links) {
           if (filters.shouldProcessLink(context, link)) {
-            enqueueUrl(originUrl, link);
+            enqueueUrl(job, link);
           } else {
             log.debug("Skipping fetching of URL [{}]", url);
           }
