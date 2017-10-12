@@ -51,7 +51,7 @@ subprojects {
 
         repositories {
             mavenCentral()
-            maven { url "https://jitpack.io" }
+            maven { url 'https://jitpack.io' }
         }
 
         dependencies {
@@ -81,8 +81,8 @@ subprojects {
         }
 
         dependencies {
-            testCompile "org.junit.jupiter:junit-jupiter-api:5.0.0"
-            testRuntime "org.junit.jupiter:junit-jupiter-engine:5.0.0"
+            testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0'
+            testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.0'
             testCompile 'org.assertj:assertj-core:3.8.0'
         }
     }
@@ -95,7 +95,7 @@ subprojects {
     }
 }
 
-project(":cli") {
+project(':cli') {
     apply plugin: 'java'
     apply plugin: 'application'
     apply plugin: 'checkstyle'
@@ -110,19 +110,19 @@ project(":cli") {
     }
 }
 
-project(":core") {
+project(':core') {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'org.junit.platform.gradle.plugin'
     apply plugin: 'checkstyle'
 
     dependencies {
-        testCompile("org.junit.jupiter:junit-jupiter-api:5.0.0")
-        testRuntime("org.junit.jupiter:junit-jupiter-engine:5.0.0")
+        testCompile('org.junit.jupiter:junit-jupiter-api:5.0.0')
+        testRuntime('org.junit.jupiter:junit-jupiter-engine:5.0.0')
     }
 }
 
-project(":http") {
+project(':http') {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'org.junit.platform.gradle.plugin'
@@ -134,7 +134,7 @@ project(":http") {
     }
 }
 
-project(":html") {
+project(':html') {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'org.junit.platform.gradle.plugin'
@@ -143,5 +143,18 @@ project(":html") {
     dependencies {
         compile project(':core')
         compile group: 'org.jsoup', name: 'jsoup', version: '1.10.3'
+    }
+}
+
+project(':testserver') {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    apply plugin: 'org.junit.platform.gradle.plugin'
+    apply plugin: 'checkstyle'
+
+    dependencies {
+        compile 'io.javalin:javalin:0.5.2'
+        testCompile group: 'org.jsoup', name: 'jsoup', version: '1.10.3'
+        testCompile 'org.jodd:jodd-http:3.9.1'
     }
 }
