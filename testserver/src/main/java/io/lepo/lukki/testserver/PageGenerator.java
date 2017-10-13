@@ -29,9 +29,9 @@ class PageGenerator {
       int validPageCount
   ) {
     List<String> validPaths = randomPaths(validPageCount - 1);
-    validPaths.add(0, "/"); // make sure root is included
     Map<String, List<String>> pages = new HashMap<>(validPageCount);
     List<String> remainingPicks = new ArrayList<>(validPaths);
+    validPaths.add(0, "/"); // make sure root is included in the paths
 
     // build the pages such that all paths are reachable by starting the crawl from root
     for (String path : validPaths) {
