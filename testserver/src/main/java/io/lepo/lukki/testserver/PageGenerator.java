@@ -8,7 +8,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class PageGenerator {
+final class PageGenerator {
 
   private static final String RAND_STRING_CHARS = "abcdefghijklmnopqrstuvwxyz";
   private static final int MAX_NAME_LENGTH = 20;

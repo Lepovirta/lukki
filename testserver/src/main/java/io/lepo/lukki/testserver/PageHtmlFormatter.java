@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class PageHtmlFormatter {
+final class PageHtmlFormatter {
+
+  private PageHtmlFormatter() {
+  }
 
   static String format(String pageLink, List<String> links) {
     String linksHtml = formatLinks(links);

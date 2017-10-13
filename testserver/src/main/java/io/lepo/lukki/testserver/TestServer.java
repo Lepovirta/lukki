@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestServer {
+public final class TestServer {
 
   private static final Logger log = LoggerFactory.getLogger(TestServer.class);
 
