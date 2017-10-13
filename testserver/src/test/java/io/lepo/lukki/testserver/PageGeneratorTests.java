@@ -1,12 +1,15 @@
 package io.lepo.lukki.testserver;
 
-import java.util.Collections;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
-import java.util.Stack;
 import java.util.regex.Pattern;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -36,9 +39,8 @@ class PageGeneratorTests {
     }
   }
 
-  @Test
+  @RepeatedTest(5)
   @DisplayName("All paths are in valid format")
-  @RepeatedTest(2)
   void testLinkFormat() {
     Map<String, List<String>> pages = generatePages(100);
     for (Entry<String, List<String>> page : pages.entrySet()) {
@@ -49,35 +51,34 @@ class PageGeneratorTests {
     }
   }
 
-  @Test
+  @RepeatedTest(20)
   @DisplayName("All paths are reachable starting from root")
-  @RepeatedTest(5)
   void testAllPathsReachable() {
     Map<String, List<String>> pages = generatePages(10);
-    Set<String> pathsToVisit = new HashSet<>(pages.keySet());
     Set<String> pathsVisited = new HashSet<>(10);
-    Stack<String> pathsToProcess = new Stack<>();
-    pathsToProcess.push("/"); // Start from root
+    Queue<String> pathsToProcess = new LinkedList<>();
+    pathsToProcess.offer("/"); // Start from root
 
     while (!pathsToProcess.isEmpty()) {
       // Get the next path and its child links
-      String path = pathsToProcess.pop();
-      List<String> childLinks = pages.getOrDefault(path, Collections.emptyList());
+      String path = pathsToProcess.poll();
+      List<String> childLinks = pages.get(path);
 
-      // Link and its pages have been visited
-      pathsToVisit.remove(path);
-      pathsToVisit.removeAll(childLinks);
+      if (childLinks == null) {
+        fail("No child links found for path: " + path);
+      }
 
       // Process the child links next
-      pathsToProcess.addAll(childLinks);
-      pathsToProcess.removeAll(pathsVisited);
+      List<String> nextPaths = new ArrayList<>(childLinks);
+      nextPaths.removeAll(pathsVisited);
+      pathsToProcess.addAll(nextPaths);
 
-      // Ensure the child links are not reprocessed
+      // Update which paths have been visited
       pathsVisited.add(path);
       pathsVisited.addAll(childLinks);
     }
 
-    Assertions.assertThat(pathsToVisit).isEmpty();
+    Assertions.assertThat(pathsVisited).containsAll(pages.keySet());
   }
 
   private Map<String, List<String>> generatePages(int validPagesCount) {
