@@ -2,6 +2,8 @@ package io.lepo.lukki.core;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Set;
 
@@ -60,5 +62,45 @@ public class CrawlJob {
   public static CrawlJob withHostsStartingWithUrlHost(URI uri) throws MalformedURLException {
     Set<String> hosts = Collections.singleton(uri.getHost());
     return new CrawlJob(uri, hosts, hosts);
+  }
+
+  public Result toResult(
+      final LocalDateTime startTime,
+      final LocalDateTime endTime
+  ) {
+    return new Result(this, startTime, endTime);
+  }
+
+  public static final class Result {
+
+    private final CrawlJob job;
+    private final LocalDateTime startTime;
+    private final LocalDateTime endTime;
+
+    public Result(
+        final CrawlJob job,
+        final LocalDateTime startTime,
+        final LocalDateTime endTime
+    ) {
+      this.job = job;
+      this.startTime = startTime;
+      this.endTime = endTime;
+    }
+
+    public Duration getDuration() {
+      return Duration.between(startTime, endTime);
+    }
+
+    public CrawlJob getJob() {
+      return job;
+    }
+
+    public LocalDateTime getStartTime() {
+      return startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+      return endTime;
+    }
   }
 }
