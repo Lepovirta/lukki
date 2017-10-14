@@ -8,8 +8,6 @@ import io.lepo.lukki.core.ScriptRegistry;
 import io.lepo.lukki.html.Html;
 import io.lepo.lukki.http.HttpClient;
 import java.net.URI;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,18 +28,15 @@ public class Main {
 
     CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(URI.create(args[0]));
 
-    LocalDateTime startTime = LocalDateTime.now();
-
     System.out.println("Crawling URI: " + job.getUri());
-    CompletableFuture<LocalDateTime> crawlFuture = crawler.apply(
+    CompletableFuture<CrawlJob.Result> crawlFuture = crawler.apply(
         job,
         result -> System.out.println(result.toString())
     );
 
     try {
-      LocalDateTime endTime = crawlFuture.get(60, TimeUnit.SECONDS);
-      Duration crawlDuration = Duration.between(startTime, endTime);
-      System.out.println("Crawl duration in seconds: " + crawlDuration.getSeconds());
+      CrawlJob.Result result = crawlFuture.get(60, TimeUnit.SECONDS);
+      System.out.println("Crawl duration in seconds: " + result.getDuration().getSeconds());
     } finally {
       crawler.close();
     }

@@ -11,9 +11,9 @@ public final class CrawlResult {
   private final AssertionResult[] assertionResults;
 
   private CrawlResult(
-      URI uri,
-      Exception error,
-      AssertionResult[] assertionResults
+      final URI uri,
+      final Exception error,
+      final AssertionResult[] assertionResults
   ) {
     this.uri = uri;
     this.error = error;
@@ -21,15 +21,15 @@ public final class CrawlResult {
   }
 
   public static CrawlResult success(
-      URI uri,
-      AssertionResult[] assertionResults
+      final URI uri,
+      final AssertionResult[] assertionResults
   ) {
     return new CrawlResult(uri, null, assertionResults);
   }
 
   public static CrawlResult failure(
-      URI uri,
-      Exception error
+      final URI uri,
+      final Exception error
   ) {
     return new CrawlResult(uri, error, new AssertionResult[]{});
   }

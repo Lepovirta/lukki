@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public final class CrawlEngine
     implements
     Closeable,
-    BiFunction<CrawlJob, CrawlResult.Bus, CompletableFuture<LocalDateTime>> {
+    BiFunction<CrawlJob, CrawlResult.Bus, CompletableFuture<CrawlJob.Result>> {
 
   private static final Logger log = LoggerFactory.getLogger(CrawlEngine.class);
 
@@ -22,9 +22,9 @@ public final class CrawlEngine
   private final Filters filters;
 
   public CrawlEngine(
-      CrawlClient client,
-      ScriptRegistry registry,
-      Filters filters
+      final CrawlClient client,
+      final ScriptRegistry registry,
+      final Filters filters
   ) {
     this.started = new AtomicBoolean(false);
     this.filters = filters;
@@ -33,16 +33,23 @@ public final class CrawlEngine
   }
 
   @Override
-  public CompletableFuture<LocalDateTime> apply(CrawlJob job, CrawlResult.Bus crawlResultBus) {
+  public CompletableFuture<CrawlJob.Result> apply(
+      final CrawlJob job,
+      final CrawlResult.Bus crawlResultBus
+  ) {
     if (started.compareAndSet(false, true)) {
       log.debug("Starting client");
       client.start();
     }
 
+    final LocalDateTime startTime = LocalDateTime.now();
+
     return new PerJobCrawlEngine(
         registry, filters, client,
         job, crawlResultBus
-    ).get();
+    ).get().thenApply(
+        endTime -> job.toResult(startTime, endTime)
+    );
   }
 
   @Override
