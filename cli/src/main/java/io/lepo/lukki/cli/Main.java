@@ -2,6 +2,7 @@ package io.lepo.lukki.cli;
 
 import io.lepo.lukki.core.CrawlEngine;
 import io.lepo.lukki.core.CrawlJob;
+import io.lepo.lukki.core.CrawlObserver;
 import io.lepo.lukki.core.Filters;
 import io.lepo.lukki.core.Script;
 import io.lepo.lukki.core.ScriptRegistry;
@@ -27,11 +28,14 @@ public class Main {
     );
 
     CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(URI.create(args[0]));
-
+    CompletableFuture<CrawlJob.Result> crawlFuture = new CompletableFuture<>();
     System.out.println("Crawling URI: " + job.getUri());
-    CompletableFuture<CrawlJob.Result> crawlFuture = crawler.apply(
+    crawler.accept(
         job,
-        result -> System.out.println(result.toString())
+        CrawlObserver.from(
+            crawlFuture::complete,
+            result -> System.out.println(result.toString())
+        )
     );
 
     try {

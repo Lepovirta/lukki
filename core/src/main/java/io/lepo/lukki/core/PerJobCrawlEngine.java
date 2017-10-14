@@ -1,19 +1,15 @@
 package io.lepo.lukki.core;
 
-import io.lepo.lukki.core.CrawlResult.Bus;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class PerJobCrawlEngine
-    implements Supplier<CompletableFuture<LocalDateTime>> {
+final class PerJobCrawlEngine implements Runnable {
 
   private final Logger log = LoggerFactory.getLogger(PerJobCrawlEngine.class);
 
@@ -21,22 +17,23 @@ final class PerJobCrawlEngine
   private final ScriptRegistry registry;
   private final Filters filters;
   private final CrawlJob job;
+  private final CrawlObserver observer;
   private final TrackingCrawlClient client;
-  private final CrawlResult.Bus crawlResultBus;
+  private LocalDateTime startTime = null;
 
   PerJobCrawlEngine(
-      ScriptRegistry registry,
-      Filters filters,
-      CrawlClient client,
-      CrawlJob job,
-      Bus crawlResultBus
+      final ScriptRegistry registry,
+      final Filters filters,
+      final CrawlClient client,
+      final CrawlJob job,
+      final CrawlObserver observer
   ) {
     this.registry = registry;
     this.filters = filters;
     this.job = job;
-    this.visitedUrls = new ConcurrentHashMap<>();
-    this.client = new TrackingCrawlClient(client);
-    this.crawlResultBus = crawlResultBus;
+    this.observer = observer;
+    this.visitedUrls = new ConcurrentHashMap<>(100);
+    this.client = new TrackingCrawlClient(client, this::onComplete);
   }
 
   private void enqueueUrl(final URI uri) {
@@ -58,9 +55,13 @@ final class PerJobCrawlEngine
   }
 
   @Override
-  public CompletableFuture<LocalDateTime> get() {
+  public void run() {
+    startTime = LocalDateTime.now();
     enqueueUrl(job.getUri());
-    return client.getFuture();
+  }
+
+  private void onComplete(LocalDateTime endTime) {
+    observer.onComplete(job.toResult(startTime, endTime));
   }
 
   private class HandleFetch implements CrawlClient.Callback {
@@ -72,12 +73,12 @@ final class PerJobCrawlEngine
     }
 
     @Override
-    public void onSuccess(String mimeType, Charset charset, InputStream input) {
+    public void onSuccess(final String mimeType, final Charset charset, final InputStream input) {
       CrawlContext context = new CrawlContext(job, uri, mimeType, charset);
 
       if (!filters.shouldProcessDocument(context)) {
         log.debug("Skipping handling for document at URI [{}]", uri);
-        crawlResultBus.accept(CrawlResult.success(uri, new AssertionResult[0]));
+        observer.onNext(CrawlEvent.success(uri, new AssertionResult[0]));
         return;
       }
 
@@ -95,12 +96,10 @@ final class PerJobCrawlEngine
           }
         }
 
-        CrawlResult crawlResult = CrawlResult.success(
+        observer.onNext(CrawlEvent.success(
             uri,
             scriptResult.getAssertionResults()
-        );
-
-        crawlResultBus.accept(crawlResult);
+        ));
       } catch (Exception ex) {
         log.debug("Execution of successful fetch failed!", ex);
         handleFailure(ex);
@@ -108,17 +107,16 @@ final class PerJobCrawlEngine
     }
 
     @Override
-    public void onFailure(Exception ex) {
+    public void onFailure(final Exception ex) {
       log.debug("Fetch failed for URI [{}]", ex);
       handleFailure(ex);
     }
 
-    private void handleFailure(Exception ex) {
-      CrawlResult crawlResult = CrawlResult.failure(
+    private void handleFailure(final Exception ex) {
+      observer.onNext(CrawlEvent.failure(
           uri,
           ex
-      );
-      crawlResultBus.accept(crawlResult);
+      ));
     }
   }
 }
