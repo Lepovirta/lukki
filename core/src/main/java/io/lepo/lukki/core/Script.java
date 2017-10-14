@@ -61,14 +61,29 @@ public final class Script<DocT> {
     LinkExtractor<Object> noLinks = (context, doc) -> new URI[0];
   }
 
-  public interface AssertionFunction<DocT>
-      extends BiFunction<CrawlContext, DocT, AssertionResult> {
+  public static class AssertionFunction<DocT>
+      implements BiFunction<CrawlContext, DocT, AssertionResult> {
 
+    private final String name;
+    private final BiFunction<CrawlContext, DocT, String[]> assertion;
+
+    public AssertionFunction(
+        String name,
+        BiFunction<CrawlContext, DocT, String[]> assertion
+    ) {
+      this.name = name;
+      this.assertion = assertion;
+    }
+
+    @Override
+    public AssertionResult apply(CrawlContext crawlContext, DocT doc) {
+      return new AssertionResult(this.name, this.assertion.apply(crawlContext, doc));
+    }
   }
 
   public static final class Result {
 
-    public static final Result empty = new Result(new URI[0], new AssertionResult[0]);
+    public static final Result EMPTY = new Result(new URI[0], new AssertionResult[0]);
 
     private final URI[] links;
     private final AssertionResult[] assertionResults;

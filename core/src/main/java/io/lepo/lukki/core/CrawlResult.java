@@ -2,23 +2,21 @@ package io.lepo.lukki.core;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 public final class CrawlResult {
 
   private final URI uri;
-  private final boolean fetchOk;
-  private final String summary;
+  private final Exception error;
   private final AssertionResult[] assertionResults;
 
   private CrawlResult(
       URI uri,
-      boolean fetchOk,
-      String summary,
+      Exception error,
       AssertionResult[] assertionResults
   ) {
     this.uri = uri;
-    this.fetchOk = fetchOk;
-    this.summary = summary;
+    this.error = error;
     this.assertionResults = assertionResults;
   }
 
@@ -26,22 +24,22 @@ public final class CrawlResult {
       URI uri,
       AssertionResult[] assertionResults
   ) {
-    return new CrawlResult(uri, true, "", assertionResults);
+    return new CrawlResult(uri, null, assertionResults);
   }
 
   public static CrawlResult failure(
       URI uri,
-      String summary
+      Exception error
   ) {
-    return new CrawlResult(uri, false, summary, new AssertionResult[]{});
+    return new CrawlResult(uri, error, new AssertionResult[]{});
   }
 
   public URI getUri() {
     return uri;
   }
 
-  public boolean isFetchOk() {
-    return fetchOk;
+  public Exception getError() {
+    return error;
   }
 
   public AssertionResult[] getAssertionResults() {
@@ -52,9 +50,12 @@ public final class CrawlResult {
   public String toString() {
     return "CrawlResult{"
         + "uri='" + uri + '\''
-        + ", fetchOk=" + fetchOk
-        + ", summary='" + summary + '\''
+        + ", error='" + error + '\''
         + ", assertionResults=" + Arrays.toString(assertionResults)
         + '}';
+  }
+
+  public interface Bus extends Consumer<CrawlResult> {
+
   }
 }

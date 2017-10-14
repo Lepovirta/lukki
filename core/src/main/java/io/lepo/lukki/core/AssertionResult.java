@@ -1,35 +1,30 @@
 package io.lepo.lukki.core;
 
+import java.util.Arrays;
+
 public final class AssertionResult {
 
   private final String name;
-  private final String result;
-  private final boolean successful;
+  private final String[] errors;
 
-  public AssertionResult(String name, String result, boolean successful) {
+  public AssertionResult(String name, String[] errors) {
     this.name = name;
-    this.result = result;
-    this.successful = successful;
+    this.errors = errors;
   }
 
   public String getName() {
     return name;
   }
 
-  public String getResult() {
-    return result;
-  }
-
-  public boolean isSuccessful() {
-    return successful;
+  public String[] getErrors() {
+    return errors;
   }
 
   @Override
   public String toString() {
     return "AssertionResult{"
         + "name='" + name + '\''
-        + ", result='" + result + '\''
-        + ", successful=" + successful
+        + ", errors=" + Arrays.toString(errors)
         + '}';
   }
 }
