@@ -20,33 +20,6 @@ public interface CrawlClient
     default void empty() {
       onFailure(new RuntimeException("Empty response"));
     }
-
-    static Callback sequence(Callback[] callbacks) {
-      return new Sequence(callbacks);
-    }
-
-    class Sequence implements Callback {
-
-      private final Callback[] callbacks;
-
-      public Sequence(Callback[] callbacks) {
-        this.callbacks = callbacks;
-      }
-
-      @Override
-      public void onSuccess(String mimeType, Charset charset, InputStream input) {
-        for (Callback callback : callbacks) {
-          callback.onSuccess(mimeType, charset, input);
-        }
-      }
-
-      @Override
-      public void onFailure(Exception ex) {
-        for (Callback callback : callbacks) {
-          callback.onFailure(ex);
-        }
-      }
-    }
   }
 
   void start();
