@@ -22,7 +22,11 @@ public final class HttpClient implements CrawlClient {
   private final CloseableHttpAsyncClient client;
 
   public HttpClient() {
-    this.client = HttpAsyncClients.createDefault();
+    this(HttpAsyncClients.createDefault());
+  }
+
+  public HttpClient(CloseableHttpAsyncClient client) {
+    this.client = client;
   }
 
   @Override
