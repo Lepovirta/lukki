@@ -2,15 +2,14 @@ package io.lepo.lukki.core;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.function.Consumer;
 
-public final class CrawlResult {
+public final class CrawlEvent {
 
   private final URI uri;
   private final Exception error;
   private final AssertionResult[] assertionResults;
 
-  private CrawlResult(
+  private CrawlEvent(
       final URI uri,
       final Exception error,
       final AssertionResult[] assertionResults
@@ -20,18 +19,18 @@ public final class CrawlResult {
     this.assertionResults = assertionResults;
   }
 
-  public static CrawlResult success(
+  public static CrawlEvent success(
       final URI uri,
       final AssertionResult[] assertionResults
   ) {
-    return new CrawlResult(uri, null, assertionResults);
+    return new CrawlEvent(uri, null, assertionResults);
   }
 
-  public static CrawlResult failure(
+  public static CrawlEvent failure(
       final URI uri,
       final Exception error
   ) {
-    return new CrawlResult(uri, error, new AssertionResult[]{});
+    return new CrawlEvent(uri, error, new AssertionResult[]{});
   }
 
   public URI getUri() {
@@ -48,14 +47,10 @@ public final class CrawlResult {
 
   @Override
   public String toString() {
-    return "CrawlResult{"
+    return "CrawlEvent{"
         + "uri='" + uri + '\''
         + ", error='" + error + '\''
         + ", assertionResults=" + Arrays.toString(assertionResults)
         + '}';
-  }
-
-  public interface Bus extends Consumer<CrawlResult> {
-
   }
 }

@@ -2,17 +2,15 @@ package io.lepo.lukki.core;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiFunction;
+import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class CrawlEngine
     implements
     Closeable,
-    BiFunction<CrawlJob, CrawlResult.Bus, CompletableFuture<CrawlJob.Result>> {
+    BiConsumer<CrawlJob, CrawlObserver> {
 
   private static final Logger log = LoggerFactory.getLogger(CrawlEngine.class);
 
@@ -28,28 +26,24 @@ public final class CrawlEngine
   ) {
     this.started = new AtomicBoolean(false);
     this.filters = filters;
-    this.client = new TrackingCrawlClient(client);
+    this.client = client;
     this.registry = registry;
   }
 
   @Override
-  public CompletableFuture<CrawlJob.Result> apply(
+  public void accept(
       final CrawlJob job,
-      final CrawlResult.Bus crawlResultBus
+      final CrawlObserver observer
   ) {
     if (started.compareAndSet(false, true)) {
       log.debug("Starting client");
       client.start();
     }
 
-    final LocalDateTime startTime = LocalDateTime.now();
-
-    return new PerJobCrawlEngine(
+    new PerJobCrawlEngine(
         registry, filters, client,
-        job, crawlResultBus
-    ).get().thenApply(
-        endTime -> job.toResult(startTime, endTime)
-    );
+        job, observer
+    ).run();
   }
 
   @Override

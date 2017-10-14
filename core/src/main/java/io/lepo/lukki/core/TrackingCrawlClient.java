@@ -5,8 +5,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Phaser;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,13 +17,13 @@ final class TrackingCrawlClient implements CrawlClient {
   private final Phaser phaser;
   private final CrawlClient client;
   private final AfterFetch afterFetch;
-  private final CompletableFuture<LocalDateTime> completion;
+  private final Consumer<LocalDateTime> onComplete;
 
-  TrackingCrawlClient(CrawlClient client) {
+  TrackingCrawlClient(CrawlClient client, Consumer<LocalDateTime> onComplete) {
     this.client = client;
+    this.onComplete = onComplete;
     this.phaser = new Phaser();
     this.afterFetch = new AfterFetch();
-    this.completion = new CompletableFuture<>();
   }
 
   @Override
@@ -35,7 +35,6 @@ final class TrackingCrawlClient implements CrawlClient {
   public void close() throws IOException {
     client.close();
     phaser.forceTermination();
-    completion.cancel(true);
   }
 
   @Override
@@ -46,10 +45,6 @@ final class TrackingCrawlClient implements CrawlClient {
         afterFetch
     };
     client.accept(uri, CrawlClient.Callback.sequence(callbacks));
-  }
-
-  public CompletableFuture<LocalDateTime> getFuture() {
-    return completion;
   }
 
   private final class AfterFetch implements CrawlClient.Callback {
@@ -67,14 +62,13 @@ final class TrackingCrawlClient implements CrawlClient {
     private void afterFetch() {
       int phaseNumber = phaser.arriveAndDeregister();
       if (phaseNumber < 0) {
-        log.debug("Phaser has been cancelled. Cancelling.");
-        completion.cancel(true);
+        log.debug("Phaser has been cancelled.");
         return;
       }
 
       if (phaser.getUnarrivedParties() == 0) {
         log.debug("No parties left in phaser. Completing.");
-        completion.complete(LocalDateTime.now());
+        onComplete.accept(LocalDateTime.now());
       }
     }
   }
