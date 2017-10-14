@@ -44,7 +44,30 @@ final class TrackingCrawlClient implements CrawlClient {
         callback,
         afterFetch
     };
-    client.accept(uri, CrawlClient.Callback.sequence(callbacks));
+    client.accept(uri, new CallbackSequence(callbacks));
+  }
+
+  private static class CallbackSequence implements CrawlClient.Callback {
+
+    private final CrawlClient.Callback[] callbacks;
+
+    CallbackSequence(final CrawlClient.Callback[] callbacks) {
+      this.callbacks = callbacks;
+    }
+
+    @Override
+    public void onSuccess(String mimeType, Charset charset, InputStream input) {
+      for (CrawlClient.Callback callback : callbacks) {
+        callback.onSuccess(mimeType, charset, input);
+      }
+    }
+
+    @Override
+    public void onFailure(Exception ex) {
+      for (CrawlClient.Callback callback : callbacks) {
+        callback.onFailure(ex);
+      }
+    }
   }
 
   private final class AfterFetch implements CrawlClient.Callback {
