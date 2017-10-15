@@ -9,7 +9,10 @@ public interface CrawlObserver {
 
   void onNext(CrawlEvent event);
 
-  static CrawlObserver from(Consumer<CrawlJob.Result> onComplete, Consumer<CrawlEvent> onNext) {
+  static CrawlObserver from(
+      final Consumer<CrawlJob.Result> onComplete,
+      final Consumer<CrawlEvent> onNext
+  ) {
     return new CrawlObserver() {
       @Override
       public void onComplete(Result result) {
@@ -19,6 +22,23 @@ public interface CrawlObserver {
       @Override
       public void onNext(CrawlEvent event) {
         onNext.accept(event);
+      }
+    };
+  }
+
+  default CrawlObserver andThen(final CrawlObserver other) {
+    final CrawlObserver current = this;
+    return new CrawlObserver() {
+      @Override
+      public void onComplete(Result result) {
+        current.onComplete(result);
+        other.onComplete(result);
+      }
+
+      @Override
+      public void onNext(CrawlEvent event) {
+        current.onNext(event);
+        other.onNext(event);
       }
     };
   }

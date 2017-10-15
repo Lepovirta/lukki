@@ -1,8 +1,10 @@
 package io.lepo.lukki.cli;
 
 import io.lepo.lukki.core.CrawlEngine;
+import io.lepo.lukki.core.CrawlEventAggregator;
 import io.lepo.lukki.core.CrawlJob;
 import io.lepo.lukki.core.CrawlObserver;
+import io.lepo.lukki.core.CrawlReport;
 import io.lepo.lukki.core.Filters;
 import io.lepo.lukki.core.Script;
 import io.lepo.lukki.core.ScriptRegistry;
@@ -18,29 +20,22 @@ import java.util.concurrent.TimeUnit;
 public class Main {
 
   public static void main(String[] args) throws Exception {
-    Map<String, Script<?>> scripts = new HashMap<>();
+    final Map<String, Script<?>> scripts = new HashMap<>();
     scripts.put(Html.mimeType, Html.script(Collections.emptyList()));
-    ScriptRegistry scriptRegistry = ScriptRegistry.lenient(scripts);
-    CrawlEngine crawler = new CrawlEngine(
+    final ScriptRegistry scriptRegistry = ScriptRegistry.lenient(scripts);
+    final CrawlEngine crawler = new CrawlEngine(
         new HttpClient(),
         scriptRegistry,
         new Filters(Filters.LinkFilter.skipNone, Filters.DocumentFilter.skipForeignHost)
     );
 
-    CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(URI.create(args[0]));
-    CompletableFuture<CrawlJob.Result> crawlFuture = new CompletableFuture<>();
+    final CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(URI.create(args[0]));
     System.out.println("Crawling URI: " + job.getUri());
-    crawler.accept(
-        job,
-        CrawlObserver.from(
-            crawlFuture::complete,
-            result -> System.out.println(result.toString())
-        )
-    );
+    final CrawlEventAggregator aggregator = crawler.apply(job);
 
     try {
-      CrawlJob.Result result = crawlFuture.get(60, TimeUnit.SECONDS);
-      System.out.println("Crawl duration in seconds: " + result.getDuration().getSeconds());
+      CrawlReport report = aggregator.getReport().get(60, TimeUnit.SECONDS);
+      System.out.println(report.statsString());
     } finally {
       crawler.close();
     }

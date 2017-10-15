@@ -45,6 +45,11 @@ public final class CrawlEvent {
     return assertionResults;
   }
 
+  public boolean isFailed() {
+    return error != null
+        || Arrays.stream(assertionResults).anyMatch(r -> r.getErrors().length > 0);
+  }
+
   @Override
   public String toString() {
     return "CrawlEvent{"
