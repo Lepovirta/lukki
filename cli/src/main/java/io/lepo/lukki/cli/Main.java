@@ -3,7 +3,6 @@ package io.lepo.lukki.cli;
 import io.lepo.lukki.core.CrawlEngine;
 import io.lepo.lukki.core.CrawlEventAggregator;
 import io.lepo.lukki.core.CrawlJob;
-import io.lepo.lukki.core.CrawlObserver;
 import io.lepo.lukki.core.CrawlReport;
 import io.lepo.lukki.core.Filters;
 import io.lepo.lukki.core.Script;
@@ -14,7 +13,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
