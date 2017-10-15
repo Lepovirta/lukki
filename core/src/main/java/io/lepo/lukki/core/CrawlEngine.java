@@ -4,13 +4,15 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class CrawlEngine
     implements
     Closeable,
-    BiConsumer<CrawlJob, CrawlObserver> {
+    BiConsumer<CrawlJob, CrawlObserver>,
+    Function<CrawlJob, CrawlEventAggregator> {
 
   private static final Logger log = LoggerFactory.getLogger(CrawlEngine.class);
 
@@ -44,6 +46,13 @@ public final class CrawlEngine
         registry, filters, client,
         job, observer
     ).run();
+  }
+
+  @Override
+  public CrawlEventAggregator apply(CrawlJob crawlJob) {
+    final CrawlEventAggregator aggregator = new CrawlEventAggregator();
+    this.accept(crawlJob, aggregator);
+    return aggregator;
   }
 
   @Override
