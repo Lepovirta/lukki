@@ -104,10 +104,25 @@ subprojects {
     plugins.withType(JacocoPlugin).whenPluginAdded {
         jacocoTestReport {
             reports {
-                xml.enabled true
+                xml.enabled false
                 html.enabled false
+                csv.enabled false
             }
         }
+
+        def junitPlatformTestTask = project.tasks.getByName('junitPlatformTest')
+
+        jacoco {
+            applyTo junitPlatformTestTask
+        }
+
+        project.task(type: JacocoReport, "junitPlatformJacocoReport",
+                {
+                    sourceDirectories = files("./src/main")
+                    classDirectories = files("$buildDir/classes/main")
+                    executionData junitPlatformTestTask
+                }
+        )
     }
 }
 
@@ -183,7 +198,6 @@ project(':testserver') {
 apply plugin: 'jacoco'
 
 task codeCoverageReport(type: JacocoReport) {
-    dependsOn = subprojects.test
     executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 
     subprojects.each {
