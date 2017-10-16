@@ -3,6 +3,7 @@ import org.junit.platform.gradle.plugin.JUnitPlatformPlugin
 buildscript {
     repositories {
         mavenCentral()
+        jcenter()
     }
 
     dependencies {
@@ -40,6 +41,13 @@ project.ext {
 
 apply plugin: 'gitversion'
 
+allprojects {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
+
 subprojects {
     project.version = project.gitVersion
 
@@ -50,7 +58,6 @@ subprojects {
         archivesBaseName = "${rootProject.name}-${name}"
 
         repositories {
-            mavenCentral()
             maven { url 'https://jitpack.io' }
         }
 
@@ -93,6 +100,15 @@ subprojects {
             toolVersion = '8.2'
         }
     }
+
+    plugins.withType(JacocoPlugin).whenPluginAdded {
+        jacocoTestReport {
+            reports {
+                xml.enabled true
+                html.enabled false
+            }
+        }
+    }
 }
 
 project(':cli') {
@@ -116,6 +132,7 @@ project(':core') {
     apply plugin: 'maven-publish'
     apply plugin: 'org.junit.platform.gradle.plugin'
     apply plugin: 'checkstyle'
+    apply plugin: 'jacoco'
 
     dependencies {
         testCompile('org.junit.jupiter:junit-jupiter-api:5.0.0')
@@ -128,6 +145,7 @@ project(':http') {
     apply plugin: 'maven-publish'
     apply plugin: 'org.junit.platform.gradle.plugin'
     apply plugin: 'checkstyle'
+    apply plugin: 'jacoco'
 
     dependencies {
         compile project(':core')
@@ -140,6 +158,7 @@ project(':html') {
     apply plugin: 'maven-publish'
     apply plugin: 'org.junit.platform.gradle.plugin'
     apply plugin: 'checkstyle'
+    apply plugin: 'jacoco'
 
     dependencies {
         compile project(':core')
@@ -152,10 +171,33 @@ project(':testserver') {
     apply plugin: 'maven-publish'
     apply plugin: 'org.junit.platform.gradle.plugin'
     apply plugin: 'checkstyle'
+    apply plugin: 'jacoco'
 
     dependencies {
         compile 'io.javalin:javalin:0.5.2'
         testCompile group: 'org.jsoup', name: 'jsoup', version: '1.10.3'
         testCompile 'org.jodd:jodd-http:3.9.1'
+    }
+}
+
+apply plugin: 'jacoco'
+
+task codeCoverageReport(type: JacocoReport) {
+    dependsOn = subprojects.test
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
+    subprojects.each {
+        sourceSets it.sourceSets.main
+    }
+
+    onlyIf = {
+        true
+    }
+
+    reports {
+        xml.enabled true
+        xml.destination "${buildDir}/reports/jacoco/report.xml"
+        html.enabled false
+        csv.enabled false
     }
 }
