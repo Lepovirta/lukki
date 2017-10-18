@@ -24,7 +24,7 @@ public class Main {
     final CrawlEngine crawler = new CrawlEngine(
         new HttpClient(),
         scriptRegistry,
-        new Filters(Filters.LinkFilter.skipNone, Filters.DocumentFilter.skipForeignHost)
+        Filters.DEFAULT
     );
 
     final CrawlJob job = CrawlJob.withHostsStartingWithUrlHost(URI.create(args[0]));
