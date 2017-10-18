@@ -1,5 +1,5 @@
-include 'cli'
 include 'core'
+include 'examples'
 include 'integration'
 include 'html'
 include 'http'

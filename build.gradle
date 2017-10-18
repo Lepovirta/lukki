@@ -126,7 +126,20 @@ subprojects {
     }
 }
 
-project(':cli') {
+project(':core') {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    apply plugin: 'org.junit.platform.gradle.plugin'
+    apply plugin: 'checkstyle'
+    apply plugin: 'jacoco'
+
+    dependencies {
+        testCompile('org.junit.jupiter:junit-jupiter-api:5.0.0')
+        testRuntime('org.junit.jupiter:junit-jupiter-engine:5.0.0')
+    }
+}
+
+project(':examples') {
     apply plugin: 'java'
     apply plugin: 'application'
     apply plugin: 'checkstyle'
@@ -139,19 +152,6 @@ project(':cli') {
         compile project(':html')
         compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
         compile group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.25'
-    }
-}
-
-project(':core') {
-    apply plugin: 'java'
-    apply plugin: 'maven-publish'
-    apply plugin: 'org.junit.platform.gradle.plugin'
-    apply plugin: 'checkstyle'
-    apply plugin: 'jacoco'
-
-    dependencies {
-        testCompile('org.junit.jupiter:junit-jupiter-api:5.0.0')
-        testRuntime('org.junit.jupiter:junit-jupiter-engine:5.0.0')
     }
 }
 
