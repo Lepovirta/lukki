@@ -6,20 +6,10 @@ import java.util.function.Predicate;
 
 public final class Filters {
 
-  public interface LinkFilter extends BiPredicate<CrawlContext, URI> {
-
-    LinkFilter skipNone = (context, link) -> true;
-    LinkFilter skipAll = (context, link) -> false;
-    LinkFilter skipForeignHost = (context, link) -> context.getJob().isSiteUri(link);
-  }
-
-  public interface DocumentFilter extends Predicate<CrawlContext> {
-
-    DocumentFilter skipNone = (context) -> true;
-    DocumentFilter skipAll = (context) -> false;
-    DocumentFilter skipForeignHost = (context) -> context.getJob().isSiteUri(context.getUri());
-  }
-
+  public static final Filters DEFAULT = new Filters(
+      LinkFilter.skipNone,
+      DocumentFilter.skipForeignHost
+  );
   private final LinkFilter linkFilter;
   private final DocumentFilter documentFilter;
 
@@ -37,5 +27,19 @@ public final class Filters {
 
   public boolean shouldProcessLink(CrawlContext context, URI link) {
     return linkFilter.test(context, link);
+  }
+
+  public interface LinkFilter extends BiPredicate<CrawlContext, URI> {
+
+    LinkFilter skipNone = (context, link) -> true;
+    LinkFilter skipAll = (context, link) -> false;
+    LinkFilter skipForeignHost = (context, link) -> context.getJob().isSiteUri(link);
+  }
+
+  public interface DocumentFilter extends Predicate<CrawlContext> {
+
+    DocumentFilter skipNone = (context) -> true;
+    DocumentFilter skipAll = (context) -> false;
+    DocumentFilter skipForeignHost = (context) -> context.getJob().isSiteUri(context.getUri());
   }
 }

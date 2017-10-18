@@ -13,8 +13,6 @@ import org.junit.jupiter.api.Test;
 
 class HtmlTests {
 
-  private static final JsoupLinkExtractor extractor = new JsoupLinkExtractor();
-
   private static CrawlContext createContext(final URI uri) throws Exception {
     return new CrawlContext(
         CrawlJob.withHostsStartingWithUrlHost(uri),
