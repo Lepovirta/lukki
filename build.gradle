@@ -164,7 +164,7 @@ project(':examples') {
     apply plugin: 'java'
     apply plugin: 'application'
 
-    mainClassName = 'io.lepo.lukki.cli.Main'
+    mainClassName = 'io.lepo.lukki.examples.Main'
 
     dependencies {
         compile project(':core')
