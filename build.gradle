@@ -90,6 +90,7 @@ subprojects {
     plugins.withType(JUnitPlatformPlugin).whenPluginAdded {
         junitPlatform {
             platformVersion '1.0.0'
+            enableStandardTestTask = true
         }
 
         dependencies {
@@ -133,6 +134,11 @@ subprojects {
     plugins.withType(KotlinPlugin).whenPluginAdded {
         dependencies {
             compile "org.jetbrains.kotlin:kotlin-stdlib-jre8"
+        }
+
+        sourceSets {
+            main.java.srcDirs += 'src/main/kotlin'
+            test.java.srcDirs += 'src/test/kotlin'
         }
     }
 
@@ -237,7 +243,7 @@ task codeCoverageReport(type: JacocoReport) {
     executionData fileTree(project.rootDir.absolutePath).include('**/build/jacoco/*.exec')
 
     subprojects.each {
-        sourceSets it.sourceSets.main
+        sourceSets(it.sourceSets.main)
     }
 
     onlyIf = {
