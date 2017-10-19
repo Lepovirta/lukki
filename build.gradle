@@ -66,8 +66,15 @@ subprojects {
             maven { url 'https://jitpack.io' }
         }
 
+        sourceSets {
+            test.resources.srcDirs += "${rootProject.rootDir}/testResources"
+        }
+
         dependencies {
             compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+            testCompile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+            testCompile group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.25'
+            testCompile 'org.assertj:assertj-core:3.8.0'
         }
     }
 
@@ -96,7 +103,6 @@ subprojects {
         dependencies {
             testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0'
             testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.0'
-            testCompile 'org.assertj:assertj-core:3.8.0'
         }
     }
 
@@ -179,8 +185,6 @@ project(':integration') {
         testCompile project(':html')
         testCompile project(':http')
         testCompile project(':testserver')
-        testCompile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
-        testCompile group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.25'
     }
 }
 
