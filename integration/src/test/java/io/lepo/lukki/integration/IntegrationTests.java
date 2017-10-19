@@ -26,7 +26,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 @TestInstance(Lifecycle.PER_CLASS)
 class IntegrationTests {
 
-  private static final int PAGE_COUNT = 1000;
+  private static final int PAGE_COUNT = 200;
 
   private final TestServer server = new TestServer(0, PAGE_COUNT, null);
 
