@@ -1,6 +1,10 @@
 import org.junit.platform.gradle.plugin.JUnitPlatformPlugin
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlugin
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
+    ext.kotlin_version = '1.1.51'
+
     repositories {
         mavenCentral()
         jcenter()
@@ -8,6 +12,7 @@ buildscript {
 
     dependencies {
         classpath group: 'org.junit.platform', name: 'junit-platform-gradle-plugin', version: '1.0.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
@@ -124,6 +129,18 @@ subprojects {
                 }
         )
     }
+
+    plugins.withType(KotlinPlugin).whenPluginAdded {
+        dependencies {
+            compile "org.jetbrains.kotlin:kotlin-stdlib-jre8"
+        }
+    }
+
+    tasks.withType(KotlinCompile).all {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
 }
 
 project(':core') {
@@ -203,6 +220,7 @@ project(':testserver') {
     apply plugin: 'org.junit.platform.gradle.plugin'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
+    apply plugin: 'kotlin'
 
     dependencies {
         compile 'io.javalin:javalin:0.5.2'

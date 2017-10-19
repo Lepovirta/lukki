@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 class TrackingCrawlClientTests {
 
-  private final static int[] iterations = {1, 11, 47};
+  private static final int[] iterations = {1, 11, 47};
 
   @Test
   @DisplayName("Tracker should start and close the underlying client")
