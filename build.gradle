@@ -100,13 +100,6 @@ subprojects {
         }
     }
 
-    plugins.withType(CheckstylePlugin).whenPluginAdded {
-        checkstyle {
-            configFile = file "${project.rootDir}/checkstyle.xml"
-            toolVersion = '8.2'
-        }
-    }
-
     plugins.withType(JacocoPlugin).whenPluginAdded {
         jacocoTestReport {
             reports {
@@ -153,7 +146,6 @@ project(':core') {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'org.junit.platform.gradle.plugin'
-    apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
 
     dependencies {
@@ -165,7 +157,6 @@ project(':core') {
 project(':examples') {
     apply plugin: 'java'
     apply plugin: 'application'
-    apply plugin: 'checkstyle'
 
     mainClassName = 'io.lepo.lukki.cli.Main'
 
@@ -180,7 +171,6 @@ project(':examples') {
 
 project(':integration') {
     apply plugin: 'java'
-    apply plugin: 'checkstyle'
     apply plugin: 'org.junit.platform.gradle.plugin'
     apply plugin: 'jacoco'
 
@@ -198,7 +188,6 @@ project(':html') {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'org.junit.platform.gradle.plugin'
-    apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
 
     dependencies {
@@ -211,7 +200,6 @@ project(':http') {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'org.junit.platform.gradle.plugin'
-    apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
 
     dependencies {
@@ -224,7 +212,6 @@ project(':testserver') {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'org.junit.platform.gradle.plugin'
-    apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
     apply plugin: 'kotlin'
 
