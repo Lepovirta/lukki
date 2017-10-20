@@ -17,3 +17,9 @@ hs_err_pid*
 
 # jqwik
 .jqwik-database
+
+# Buildship
+bin/
+.settings/
+.classpath
+.project
