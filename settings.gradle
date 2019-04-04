@@ -1,7 +1,0 @@
-include 'core'
-include 'examples'
-include 'integration'
-include 'html'
-include 'http'
-include 'testserver'
-rootProject.name = 'lukki'
