@@ -1,4 +1,4 @@
-package main
+package crawler
 
 import (
 	"fmt"
@@ -9,18 +9,18 @@ import (
 
 type ID = uint32
 
-type LogItem struct {
-	Request  *Request
-	Response *Response
+type logItem struct {
+	Request  *request
+	Response *response
 }
 
-type Request struct {
+type request struct {
 	ID        ID
 	Timestamp time.Time
 	URL       *url.URL
 }
 
-type Response struct {
+type response struct {
 	ID         ID
 	Timestamp  time.Time
 	URL        *url.URL
@@ -30,15 +30,15 @@ type Response struct {
 	Error      error
 }
 
-func (l *LogItem) HasStarted() bool {
+func (l *logItem) HasStarted() bool {
 	return l.Request != nil
 }
 
-func (l *LogItem) HasEnded() bool {
+func (l *logItem) HasEnded() bool {
 	return l.Response != nil
 }
 
-func (l *LogItem) String() string {
+func (l *logItem) String() string {
 	if !l.HasStarted() {
 		return fmt.Sprintf("incomplete: %s [NO REQUEST]", l.Response.URL.String())
 	}
@@ -69,14 +69,14 @@ func (l *LogItem) String() string {
 
 	return fmt.Sprintf(
 		"%s [%s] (%dms) %s%s",
-		status, statusCode, l.Duration() / time.Millisecond, urlStr, errStr,
+		status, statusCode, l.Duration()/time.Millisecond, urlStr, errStr,
 	)
 }
 
-func (l *LogItem) IsSuccessful() bool {
+func (l *logItem) IsSuccessful() bool {
 	return l.Response.Error == nil && l.Response.StatusCode >= 200 && l.Response.StatusCode < 400
 }
 
-func (l *LogItem) Duration() time.Duration {
+func (l *logItem) Duration() time.Duration {
 	return l.Response.Timestamp.Sub(l.Request.Timestamp)
 }

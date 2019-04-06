@@ -1,10 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"github.com/Lepovirta/lukki/config"
-	"io"
+	"github.com/Lepovirta/lukki/crawler"
 	"log"
 	"os"
 )
@@ -31,18 +30,7 @@ func mainWithResult() (bool, error) {
 		return false, err
 	}
 
-	collector := NewCollector()
-	asyncHooks := NewAsyncHooks(collector)
-	if err := StartCrawling(&conf, asyncHooks); err != nil {
-		return false, err
-	}
-	asyncHooks.Wait()
-
-	if err := writeResults(collector); err != nil {
-		return false, err
-	}
-
-	return collector.IsSuccessful(), nil
+	return crawler.Execute(&conf, *outputPath)
 }
 
 func readConfig(config *config.Config) error {
@@ -50,29 +38,4 @@ func readConfig(config *config.Config) error {
 		return config.FromSTDIN()
 	}
 	return config.FromFile(*configPath)
-}
-
-func writeResults(c *Collector) error {
-	var writer io.Writer
-	if *outputPath == "" || *outputPath == "-" {
-		writer = os.Stdout
-	} else {
-		file, err := os.Create(*outputPath)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			err = file.Close()
-			if err != nil {
-				log.Printf("failed to close output file: %s", err)
-			}
-		}()
-		writer = file
-	}
-
-	bufWriter := bufio.NewWriter(writer)
-	if err := c.Write(bufWriter); err != nil {
-		return err
-	}
-	return bufWriter.Flush()
 }
