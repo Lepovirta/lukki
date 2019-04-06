@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"flag"
+	"github.com/Lepovirta/lukki/config"
 	"io"
 	"log"
 	"os"
@@ -25,14 +26,14 @@ func main() {
 
 func mainWithResult() (bool, error) {
 	flag.Parse()
-	var config Config
-	if err := readConfig(&config); err != nil {
+	var conf config.Config
+	if err := readConfig(&conf); err != nil {
 		return false, err
 	}
 
 	collector := NewCollector()
 	asyncHooks := NewAsyncHooks(collector)
-	if err := StartCrawler(&config, asyncHooks); err != nil {
+	if err := StartCrawling(&conf, asyncHooks); err != nil {
 		return false, err
 	}
 	asyncHooks.Wait()
@@ -44,7 +45,7 @@ func mainWithResult() (bool, error) {
 	return collector.IsSuccessful(), nil
 }
 
-func readConfig(config *Config) error {
+func readConfig(config *config.Config) error {
 	if *configPath == "" || *configPath == "-" {
 		return config.FromSTDIN()
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Lepovirta/lukki/config"
 	"strings"
 	"time"
 
@@ -15,26 +16,26 @@ type Hooks interface {
 	Stop()
 }
 
-func StartCrawler(config *Config, hooks Hooks) error {
+func StartCrawling(conf *config.Config, hooks Hooks) error {
 	collector := colly.NewCollector()
-	collector.IgnoreRobotsTxt = config.IgnoreRobotsTxt
-	collector.UserAgent = config.UserAgent
+	collector.IgnoreRobotsTxt = conf.IgnoreRobotsTxt
+	collector.UserAgent = conf.UserAgent
 	collector.AllowURLRevisit = false
 	collector.ParseHTTPErrorResponse = true
 	collector.Async = true
 
 	if err := collector.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
-		Parallelism: config.Parallelism,
+		Parallelism: conf.Parallelism,
 	}); err != nil {
 		return err
 	}
 
-	homeHosts := config.HomeHostsMap()
+	homeHosts := conf.HomeHostsMap()
 
-	for i := range config.Elements {
-		element := config.Elements[i].Name
-		attribute := config.Elements[i].Attribute
+	for i := range conf.Elements {
+		element := conf.Elements[i].Name
+		attribute := conf.Elements[i].Attribute
 		query := fmt.Sprintf("%s[%s]", element, attribute)
 
 		collector.OnHTML(query, func(e *colly.HTMLElement) {
@@ -68,7 +69,7 @@ func StartCrawler(config *Config, hooks Hooks) error {
 		hooks.End(collyResponseToResponse(r, err))
 	})
 
-	for _, url := range config.URLs {
+	for _, url := range conf.URLs {
 		if err := collector.Visit(url); err != nil {
 			hooks.Error(err)
 		}
