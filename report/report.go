@@ -6,6 +6,8 @@ import (
 )
 
 type Report struct {
+	StartTime      time.Time        `json:"startTime"`
+	EndTime        time.Time        `json:"endTime"`
 	Resources      []*Resource      `json:"resources"`
 	FailedRequests []*FailedRequest `json:"failedRequests"`
 	Errors         []string         `json:"errors"`
@@ -29,6 +31,10 @@ func (r *Report) IsFailed() bool {
 	return false
 }
 
+func (r *Report) Duration() time.Duration {
+	return r.EndTime.Sub(r.StartTime)
+}
+
 type Resource struct {
 	URL        string    `json:"url"`
 	StatusCode int       `json:"statusCode"`
@@ -49,8 +55,8 @@ func (r *Resource) String() string {
 	}
 
 	return fmt.Sprintf(
-		"%s [%d] (%dms) %s",
-		status, r.StatusCode, r.Duration()/time.Millisecond, r.URL,
+		"%s [%d] (%s) %s",
+		status, r.StatusCode, r.Duration().Round(1*time.Millisecond), r.URL,
 	)
 }
 

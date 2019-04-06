@@ -10,10 +10,11 @@ import (
 )
 
 type hooks interface {
-	Start(*request)
-	End(*response)
+	Start(startTime)
+	Request(*request)
+	Respond(*response)
 	Error(error)
-	Stop()
+	Stop(endTime)
 }
 
 func crawl(conf *config.Config, hs hooks) error {
@@ -58,24 +59,25 @@ func crawl(conf *config.Config, hs hooks) error {
 			Timestamp: time.Now(),
 			URL:       r.URL,
 		}
-		hs.Start(request)
+		hs.Request(request)
 	})
 
 	collector.OnResponse(func(r *colly.Response) {
-		hs.End(collyResponseToResponse(r, nil))
+		hs.Respond(collyResponseToResponse(r, nil))
 	})
 
 	collector.OnError(func(r *colly.Response, err error) {
-		hs.End(collyResponseToResponse(r, err))
+		hs.Respond(collyResponseToResponse(r, err))
 	})
 
+	hs.Start(startTime(time.Now()))
 	for _, url := range conf.URLs {
 		if err := collector.Visit(url); err != nil {
 			hs.Error(err)
 		}
 	}
 	collector.Wait()
-	hs.Stop()
+	hs.Stop(endTime(time.Now()))
 
 	return nil
 }
