@@ -32,7 +32,9 @@ func mainWithResult() (bool, error) {
 
 	collector := NewCollector()
 	asyncHooks := NewAsyncHooks(collector)
-	StartCrawler(&config, asyncHooks)
+	if err := StartCrawler(&config, asyncHooks); err != nil {
+		return false, err
+	}
 	asyncHooks.Wait()
 
 	if err := writeResults(collector); err != nil {

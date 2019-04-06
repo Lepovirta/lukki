@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -14,7 +15,19 @@ type Hooks interface {
 	Stop()
 }
 
-func StartCrawler(config *Config, hooks Hooks) {
+var (
+	crawlElements = []struct {
+		element   string
+		attribute string
+	}{
+		{"a", "href"},
+		{"link", "href"},
+		{"img", "src"},
+		{"script", "src"},
+	}
+)
+
+func StartCrawler(config *Config, hooks Hooks) error {
 	collector := colly.NewCollector()
 	collector.IgnoreRobotsTxt = config.IgnoreRobotsTxt
 	collector.UserAgent = config.UserAgent
@@ -22,25 +35,33 @@ func StartCrawler(config *Config, hooks Hooks) {
 	collector.ParseHTTPErrorResponse = true
 	collector.Async = true
 
-	collector.Limit(&colly.LimitRule{
+	if err := collector.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: config.Parallelism,
-	})
+	}); err != nil {
+		return err
+	}
 
 	homeHosts := config.HomeHostsMap()
-	visitHTML := func(element, attribute string) {
+
+	for i := range crawlElements {
+		element := crawlElements[i].element
+		attribute := crawlElements[i].attribute
 		query := fmt.Sprintf("%s[%s]", element, attribute)
+
 		collector.OnHTML(query, func(e *colly.HTMLElement) {
-			if homeHosts[e.Request.URL.Hostname()] {
-				e.Request.Visit(e.Attr(attribute))
+			attributeValue := e.Attr(attribute)
+			if homeHosts[e.Request.URL.Hostname()] && isNotLocalLink(attributeValue) {
+				err := e.Request.Visit(attributeValue)
+				if err != nil && err != colly.ErrAlreadyVisited && err != colly.ErrRobotsTxtBlocked {
+					hooks.Error(fmt.Errorf(
+						"failed to scan %s.%s='%s' at %s",
+						element, attribute, attributeValue, e.Request.URL,
+					))
+				}
 			}
 		})
 	}
-
-	visitHTML("a", "href")
-	visitHTML("link", "href")
-	visitHTML("img", "src")
-	visitHTML("script", "src")
 
 	collector.OnRequest(func(r *colly.Request) {
 		request := &Request{
@@ -66,6 +87,12 @@ func StartCrawler(config *Config, hooks Hooks) {
 	}
 	collector.Wait()
 	hooks.Stop()
+
+	return nil
+}
+
+func isNotLocalLink(s string) bool {
+	return !strings.HasPrefix(s, "#")
 }
 
 func collyResponseToResponse(r *colly.Response, err error) *Response {
