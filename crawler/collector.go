@@ -1,89 +1,80 @@
 package crawler
 
 import (
-	"fmt"
-	"io"
+	"github.com/Lepovirta/lukki/report"
 	"log"
 )
 
 type collector struct {
-	Logs   map[ID]*logItem
-	Errors []error
+	logs   map[ID]*logItem
+	errors []error
 }
 
 func newCollector() *collector {
 	return &collector{
-		Logs:   make(map[ID]*logItem, 1000),
-		Errors: make([]error, 0, 100),
+		logs:   make(map[ID]*logItem, 1000),
+		errors: make([]error, 0, 100),
 	}
 }
 
 func (c *collector) Start(r *request) {
-	l := c.Logs[r.ID]
+	l := c.logs[r.ID]
 	if l == nil {
-		c.Logs[r.ID] = &logItem{Request: r}
-	} else if l.HasStarted() {
+		c.logs[r.ID] = &logItem{req: r}
+	} else if l.hasStarted() {
 		log.Printf("URL processing already started: %s", r.URL)
 	} else {
-		l.Request = r
+		l.req = r
 	}
 }
 
 func (c *collector) End(r *response) {
-	l := c.Logs[r.ID]
+	l := c.logs[r.ID]
 	if l == nil {
-		c.Logs[r.ID] = &logItem{Response: r}
-	} else if l.HasEnded() {
+		c.logs[r.ID] = &logItem{res: r}
+	} else if l.hasEnded() {
 		log.Printf("URL processing already ended: %s", r.URL)
 	} else {
-		l.Response = r
+		l.res = r
 	}
 }
 
 func (c *collector) Error(err error) {
-	c.Errors = append(c.Errors, err)
+	c.errors = append(c.errors, err)
 }
 
 func (c *collector) Stop() {
 	// NOOP
 }
 
-func (c *collector) Write(w io.Writer) error {
-	if len(c.Logs) > 0 {
-		if _, err := w.Write([]byte("Results:\n")); err != nil {
-			return err
-		}
-		for _, l := range c.Logs {
-			line := fmt.Sprintf("  %s\n", l)
-			if _, err := w.Write([]byte(line)); err != nil {
-				return err
-			}
-		}
-	}
-	if len(c.Errors) > 0 {
-		if _, err := w.Write([]byte("Errors:\n")); err != nil {
-			return err
-		}
-		for _, logErr := range c.Errors {
-			line := fmt.Sprintf("  %s\n", logErr)
-			if _, err := w.Write([]byte(line)); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
+func (c *collector) report() *report.Report {
+	resources := make([]*report.Resource, 0, len(c.logs))
+	failedRequests := make([]*report.FailedRequest, 0, len(c.logs))
+	errors := make([]string, 0, len(c.errors))
 
-func (c *collector) IsSuccessful() bool {
-	if len(c.Errors) > 0 {
-		return false
+	for _, e := range c.errors {
+		errors = append(errors, e.Error())
 	}
 
-	for _, l := range c.Logs {
-		if !l.IsSuccessful() {
-			return false
+	for _, l := range c.logs {
+		if l.requestFailed() {
+			failedRequests = append(failedRequests, &report.FailedRequest{
+				URL:   l.req.URL.String(),
+				Error: l.res.Error.Error(),
+			})
+		} else {
+			resources = append(resources, &report.Resource{
+				URL:        l.req.URL.String(),
+				StatusCode: l.res.StatusCode,
+				StartTime:  l.req.Timestamp,
+				EndTime:    l.res.Timestamp,
+			})
 		}
 	}
 
-	return true
+	return &report.Report{
+		Resources:      resources,
+		FailedRequests: failedRequests,
+		Errors:         errors,
+	}
 }
