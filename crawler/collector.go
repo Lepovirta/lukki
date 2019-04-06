@@ -1,4 +1,4 @@
-package main
+package crawler
 
 import (
 	"fmt"
@@ -6,22 +6,22 @@ import (
 	"log"
 )
 
-type Collector struct {
-	Logs   map[ID]*LogItem
+type collector struct {
+	Logs   map[ID]*logItem
 	Errors []error
 }
 
-func NewCollector() *Collector {
-	return &Collector{
-		Logs:   make(map[ID]*LogItem, 1000),
+func newCollector() *collector {
+	return &collector{
+		Logs:   make(map[ID]*logItem, 1000),
 		Errors: make([]error, 0, 100),
 	}
 }
 
-func (c *Collector) Start(r *Request) {
+func (c *collector) Start(r *request) {
 	l := c.Logs[r.ID]
 	if l == nil {
-		c.Logs[r.ID] = &LogItem{Request: r}
+		c.Logs[r.ID] = &logItem{Request: r}
 	} else if l.HasStarted() {
 		log.Printf("URL processing already started: %s", r.URL)
 	} else {
@@ -29,10 +29,10 @@ func (c *Collector) Start(r *Request) {
 	}
 }
 
-func (c *Collector) End(r *Response) {
+func (c *collector) End(r *response) {
 	l := c.Logs[r.ID]
 	if l == nil {
-		c.Logs[r.ID] = &LogItem{Response: r}
+		c.Logs[r.ID] = &logItem{Response: r}
 	} else if l.HasEnded() {
 		log.Printf("URL processing already ended: %s", r.URL)
 	} else {
@@ -40,21 +40,21 @@ func (c *Collector) End(r *Response) {
 	}
 }
 
-func (c *Collector) Error(err error) {
+func (c *collector) Error(err error) {
 	c.Errors = append(c.Errors, err)
 }
 
-func (c *Collector) Stop() {
+func (c *collector) Stop() {
 	// NOOP
 }
 
-func (c *Collector) Write(w io.Writer) error {
+func (c *collector) Write(w io.Writer) error {
 	if len(c.Logs) > 0 {
 		if _, err := w.Write([]byte("Results:\n")); err != nil {
 			return err
 		}
-		for _, log := range c.Logs {
-			line := fmt.Sprintf("  %s\n", log)
+		for _, l := range c.Logs {
+			line := fmt.Sprintf("  %s\n", l)
 			if _, err := w.Write([]byte(line)); err != nil {
 				return err
 			}
@@ -74,13 +74,13 @@ func (c *Collector) Write(w io.Writer) error {
 	return nil
 }
 
-func (c *Collector) IsSuccessful() bool {
+func (c *collector) IsSuccessful() bool {
 	if len(c.Errors) > 0 {
 		return false
 	}
 
-	for _, log := range c.Logs {
-		if !log.IsSuccessful() {
+	for _, l := range c.Logs {
+		if !l.IsSuccessful() {
 			return false
 		}
 	}

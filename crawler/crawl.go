@@ -1,4 +1,4 @@
-package main
+package crawler
 
 import (
 	"fmt"
@@ -9,14 +9,14 @@ import (
 	"github.com/gocolly/colly"
 )
 
-type Hooks interface {
-	Start(*Request)
-	End(*Response)
+type hooks interface {
+	Start(*request)
+	End(*response)
 	Error(error)
 	Stop()
 }
 
-func StartCrawling(conf *config.Config, hooks Hooks) error {
+func crawl(conf *config.Config, hs hooks) error {
 	collector := colly.NewCollector()
 	collector.IgnoreRobotsTxt = conf.IgnoreRobotsTxt
 	collector.UserAgent = conf.UserAgent
@@ -43,7 +43,7 @@ func StartCrawling(conf *config.Config, hooks Hooks) error {
 			if homeHosts[e.Request.URL.Hostname()] && isNotLocalLink(attributeValue) {
 				err := e.Request.Visit(attributeValue)
 				if err != nil && err != colly.ErrAlreadyVisited && err != colly.ErrRobotsTxtBlocked {
-					hooks.Error(fmt.Errorf(
+					hs.Error(fmt.Errorf(
 						"failed to scan %s.%s='%s' at %s",
 						element, attribute, attributeValue, e.Request.URL,
 					))
@@ -53,29 +53,29 @@ func StartCrawling(conf *config.Config, hooks Hooks) error {
 	}
 
 	collector.OnRequest(func(r *colly.Request) {
-		request := &Request{
+		request := &request{
 			ID:        r.ID,
 			Timestamp: time.Now(),
 			URL:       r.URL,
 		}
-		hooks.Start(request)
+		hs.Start(request)
 	})
 
 	collector.OnResponse(func(r *colly.Response) {
-		hooks.End(collyResponseToResponse(r, nil))
+		hs.End(collyResponseToResponse(r, nil))
 	})
 
 	collector.OnError(func(r *colly.Response, err error) {
-		hooks.End(collyResponseToResponse(r, err))
+		hs.End(collyResponseToResponse(r, err))
 	})
 
 	for _, url := range conf.URLs {
 		if err := collector.Visit(url); err != nil {
-			hooks.Error(err)
+			hs.Error(err)
 		}
 	}
 	collector.Wait()
-	hooks.Stop()
+	hs.Stop()
 
 	return nil
 }
@@ -84,8 +84,8 @@ func isNotLocalLink(s string) bool {
 	return !strings.HasPrefix(s, "#")
 }
 
-func collyResponseToResponse(r *colly.Response, err error) *Response {
-	return &Response{
+func collyResponseToResponse(r *colly.Response, err error) *response {
+	return &response{
 		ID:         r.Request.ID,
 		Timestamp:  time.Now(),
 		URL:        r.Request.URL,
