@@ -13,12 +13,27 @@ const (
 	userAgent = "lukkibot"
 )
 
+var (
+	defaultElements = []Element{
+		{"a", "href"},
+		{"link", "href"},
+		{"img", "src"},
+		{"script", "src"},
+	}
+)
+
 type Config struct {
-	URLs            []string `json:"urls"`
-	HomeHosts       []string `json:"homeHosts"`
-	UserAgent       string   `json:"userAgent"`
-	IgnoreRobotsTxt bool     `json:"ignoreRobotsTxt"`
-	Parallelism     int      `json:"parallelism"`
+	URLs            []string  `json:"urls"`
+	HomeHosts       []string  `json:"homeHosts"`
+	UserAgent       string    `json:"userAgent"`
+	IgnoreRobotsTxt bool      `json:"ignoreRobotsTxt"`
+	Parallelism     int       `json:"parallelism"`
+	Elements        []Element `json:"elements"`
+}
+
+type Element struct {
+	Name      string `json:"name"`
+	Attribute string `json:"attribute"`
 }
 
 func (c *Config) FromJSON(input io.Reader) error {
@@ -50,6 +65,9 @@ func (c *Config) FromFile(filename string) error {
 func (c *Config) Init() (err error) {
 	if c.Parallelism <= 0 {
 		c.Parallelism = 4
+	}
+	if len(c.Elements) == 0 {
+		c.Elements = defaultElements
 	}
 	if c.UserAgent == "" {
 		c.UserAgent = userAgent
