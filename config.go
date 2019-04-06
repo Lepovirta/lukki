@@ -1,7 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
+	"io"
+	"log"
 	"net/url"
+	"os"
 )
 
 const (
@@ -16,15 +21,41 @@ type Config struct {
 	Parallelism     int      `json:"parallelism"`
 }
 
+func (c *Config) FromJSON(input io.Reader) error {
+	if err := json.NewDecoder(input).Decode(c); err != nil {
+		return err
+	}
+	return c.Init()
+}
+
+func (c *Config) FromSTDIN() error {
+	reader := bufio.NewReader(os.Stdin)
+	return c.FromJSON(reader)
+}
+
+func (c *Config) FromFile(filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			log.Printf("failed to close input file: %s", err)
+		}
+	}()
+	return c.FromJSON(bufio.NewReader(file))
+}
+
 func (c *Config) Init() (err error) {
+	if c.Parallelism <= 0 {
+		c.Parallelism = 4
+	}
 	if c.UserAgent == "" {
 		c.UserAgent = userAgent
 	}
 	if len(c.HomeHosts) == 0 {
 		c.HomeHosts, err = extractHosts(c.URLs)
-	}
-	if c.Parallelism == 0 {
-		c.Parallelism = 4
 	}
 	return err
 }
