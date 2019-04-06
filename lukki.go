@@ -1,12 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"flag"
+	"io"
 	"log"
 	"os"
-	"io"
-	"bufio"
-	"encoding/json"
 )
 
 var (
@@ -30,7 +29,6 @@ func mainWithResult() (bool, error) {
 	if err := readConfig(&config); err != nil {
 		return false, err
 	}
-	config.Init()
 
 	collector := NewCollector()
 	asyncHooks := NewAsyncHooks(collector)
@@ -45,24 +43,10 @@ func mainWithResult() (bool, error) {
 }
 
 func readConfig(config *Config) error {
-	var reader io.Reader
 	if *configPath == "" || *configPath == "-" {
-		reader = os.Stdin
-	} else {
-		file, err := os.Open(*configPath)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			err := file.Close()
-			if err != nil {
-				log.Printf("failed to close input file: %s", err)
-			}
-		}()
-		reader = file		
+		return config.FromSTDIN()
 	}
-
-	return json.NewDecoder(bufio.NewReader(reader)).Decode(config)
+	return config.FromFile(*configPath)
 }
 
 func writeResults(c *Collector) error {
@@ -89,4 +73,3 @@ func writeResults(c *Collector) error {
 	}
 	return bufWriter.Flush()
 }
-
