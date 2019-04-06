@@ -15,18 +15,6 @@ type Hooks interface {
 	Stop()
 }
 
-var (
-	crawlElements = []struct {
-		element   string
-		attribute string
-	}{
-		{"a", "href"},
-		{"link", "href"},
-		{"img", "src"},
-		{"script", "src"},
-	}
-)
-
 func StartCrawler(config *Config, hooks Hooks) error {
 	collector := colly.NewCollector()
 	collector.IgnoreRobotsTxt = config.IgnoreRobotsTxt
@@ -44,9 +32,9 @@ func StartCrawler(config *Config, hooks Hooks) error {
 
 	homeHosts := config.HomeHostsMap()
 
-	for i := range crawlElements {
-		element := crawlElements[i].element
-		attribute := crawlElements[i].attribute
+	for i := range config.Elements {
+		element := config.Elements[i].Name
+		attribute := config.Elements[i].Attribute
 		query := fmt.Sprintf("%s[%s]", element, attribute)
 
 		collector.OnHTML(query, func(e *colly.HTMLElement) {
