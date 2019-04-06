@@ -45,5 +45,12 @@ func ToASCII(r *report.Report, w io.Writer) error {
 			}
 		}
 	}
+
+	// Summary
+	duration := fmt.Sprintf("Crawl duration: %s\n", r.Duration())
+	if _, err := w.Write([]byte(duration)); err != nil {
+		return err
+	}
+
 	return nil
 }

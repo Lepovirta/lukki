@@ -8,6 +8,9 @@ import (
 
 type ID = uint32
 
+type startTime time.Time
+type endTime time.Time
+
 type logItem struct {
 	req *request
 	res *response

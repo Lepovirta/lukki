@@ -3,11 +3,14 @@ package crawler
 import (
 	"github.com/Lepovirta/lukki/report"
 	"log"
+	"time"
 )
 
 type collector struct {
-	logs   map[ID]*logItem
-	errors []error
+	startTime time.Time
+	endTime   time.Time
+	logs      map[ID]*logItem
+	errors    []error
 }
 
 func newCollector() *collector {
@@ -17,7 +20,11 @@ func newCollector() *collector {
 	}
 }
 
-func (c *collector) Start(r *request) {
+func (c *collector) Start(t startTime) {
+	c.startTime = time.Time(t)
+}
+
+func (c *collector) Request(r *request) {
 	l := c.logs[r.ID]
 	if l == nil {
 		c.logs[r.ID] = &logItem{req: r}
@@ -28,7 +35,7 @@ func (c *collector) Start(r *request) {
 	}
 }
 
-func (c *collector) End(r *response) {
+func (c *collector) Respond(r *response) {
 	l := c.logs[r.ID]
 	if l == nil {
 		c.logs[r.ID] = &logItem{res: r}
@@ -43,8 +50,8 @@ func (c *collector) Error(err error) {
 	c.errors = append(c.errors, err)
 }
 
-func (c *collector) Stop() {
-	// NOOP
+func (c *collector) Stop(t endTime) {
+	c.endTime = time.Time(t)
 }
 
 func (c *collector) report() *report.Report {
@@ -73,6 +80,8 @@ func (c *collector) report() *report.Report {
 	}
 
 	return &report.Report{
+		StartTime:      c.startTime,
+		EndTime:        c.endTime,
 		Resources:      resources,
 		FailedRequests: failedRequests,
 		Errors:         errors,
