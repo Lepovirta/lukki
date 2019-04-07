@@ -1,8 +1,16 @@
-version: 2
+version: 2.1
 jobs:
   build:
     docker:
       - image: circleci/golang:1.12
     steps:
       - checkout
-      - run: ./build.sh
+      - run:
+          name: Setup
+          command: ./bin/setup.sh
+      - run:
+          name: Test
+          command: ./bin/test.sh
+      - run:
+          name: Build
+          command: ./bin/build.sh

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 BUILDINFO_PKG="github.com/Lepovirta/lukki/internal/buildinfo"
 VERSION=$(git describe --match 'v[0-9]*' | sed 's/^v//')
@@ -14,20 +14,18 @@ PLATFORMS=(
     "windows/amd64"
 )
 
-setup() {
-    mkdir -p out
-    go mod download
-}
-
 build_go() {
     local suffix
     if [ "$GOOS" = "windows" ]; then
         suffix=".exe"
     fi
-    go build -v -ldflags "-X $BUILDINFO_PKG.Version=$VERSION" -o "out/lukki-${GOOS}-${GOARCH}${suffix:-}"
+    go build -v \
+        -ldflags "-X $BUILDINFO_PKG.Version=$VERSION" \
+        -o "out/lukki-${GOOS}-${GOARCH}${suffix:-}"
 }
 
 build_all() {
+    mkdir -p out
     local platform_split
     for platform in "${PLATFORMS[@]}"; do
         platform_split=(${platform//\// })
@@ -37,5 +35,4 @@ build_all() {
     done
 }
 
-setup
 build_all
