@@ -9,15 +9,7 @@ import (
 	"github.com/gocolly/colly"
 )
 
-type hooks interface {
-	Start(startTime)
-	Request(*request)
-	Respond(*response)
-	Error(error)
-	Stop(endTime)
-}
-
-func crawl(conf *config.Config, hs hooks) error {
+func crawl(conf *config.Config, events chan interface{}) error {
 	collector := colly.NewCollector()
 	collector.IgnoreRobotsTxt = conf.IgnoreRobotsTxt
 	collector.UserAgent = conf.UserAgent
@@ -44,10 +36,10 @@ func crawl(conf *config.Config, hs hooks) error {
 			if homeHosts[e.Request.URL.Hostname()] && isNotLocalLink(attributeValue) {
 				err := e.Request.Visit(attributeValue)
 				if err != nil && err != colly.ErrAlreadyVisited && err != colly.ErrRobotsTxtBlocked {
-					hs.Error(fmt.Errorf(
+					events <- fmt.Errorf(
 						"failed to scan %s.%s='%s' at %s",
 						element, attribute, attributeValue, e.Request.URL,
-					))
+					)
 				}
 			}
 		})
@@ -59,25 +51,25 @@ func crawl(conf *config.Config, hs hooks) error {
 			Timestamp: time.Now(),
 			URL:       r.URL,
 		}
-		hs.Request(request)
+		events <- request
 	})
 
 	collector.OnResponse(func(r *colly.Response) {
-		hs.Respond(collyResponseToResponse(r, nil))
+		events <- collyResponseToResponse(r, nil)
 	})
 
 	collector.OnError(func(r *colly.Response, err error) {
-		hs.Respond(collyResponseToResponse(r, err))
+		events <- collyResponseToResponse(r, err)
 	})
 
-	hs.Start(startTime(time.Now()))
+	events <- startTime(time.Now())
 	for _, url := range conf.URLs {
 		if err := collector.Visit(url); err != nil {
-			hs.Error(err)
+			events <- err
 		}
 	}
 	collector.Wait()
-	hs.Stop(endTime(time.Now()))
+	events <- endTime(time.Now())
 
 	return nil
 }
