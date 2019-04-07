@@ -19,6 +19,7 @@ jobs:
           paths:
             - lukki*
             - git_tag.txt
+            - SHA256SUMS
 
   release:
     docker:
