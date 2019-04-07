@@ -6,6 +6,7 @@ import (
 	"github.com/Lepovirta/lukki/config"
 	"github.com/Lepovirta/lukki/crawler"
 	"github.com/Lepovirta/lukki/format"
+	"github.com/Lepovirta/lukki/internal/buildinfo"
 	"github.com/Lepovirta/lukki/report"
 	"io"
 	"log"
@@ -16,6 +17,7 @@ var (
 	configPath   = flag.String("config", "STDIN", "File to read configuration from")
 	outputPath   = flag.String("output", "STDOUT", "File to write configuration to")
 	reportFormat = flag.String("format", "ascii", "Format of the report")
+	printVersion = flag.Bool("version", false, "Print version information")
 )
 
 func main() {
@@ -30,6 +32,11 @@ func main() {
 
 func mainWithResult() (bool, error) {
 	flag.Parse()
+	if *printVersion {
+		buildinfo.PrintVersion()
+		return true, nil
+	}
+
 	var conf config.Config
 	if err := readConfig(&conf); err != nil {
 		return false, err
