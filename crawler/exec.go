@@ -6,11 +6,13 @@ import (
 )
 
 func Execute(conf *config.Config) (*report.Report, error) {
+	events := make(chan interface{}, 1000)
 	collector := newCollector()
-	asyncHooks := newAsyncHooks(collector)
-	if err := crawl(conf, asyncHooks); err != nil {
+	asyncCollector := newAsyncCollector(collector, events)
+	go asyncCollector.collect()
+	if err := crawl(conf, events); err != nil {
 		return nil, err
 	}
-	asyncHooks.Wait()
+	asyncCollector.wait()
 	return collector.report(), nil
 }

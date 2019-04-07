@@ -20,11 +20,11 @@ func newCollector() *collector {
 	}
 }
 
-func (c *collector) Start(t startTime) {
+func (c *collector) start(t startTime) {
 	c.startTime = time.Time(t)
 }
 
-func (c *collector) Request(r *request) {
+func (c *collector) request(r *request) {
 	l := c.logs[r.ID]
 	if l == nil {
 		c.logs[r.ID] = &logItem{req: r}
@@ -35,7 +35,7 @@ func (c *collector) Request(r *request) {
 	}
 }
 
-func (c *collector) Respond(r *response) {
+func (c *collector) respond(r *response) {
 	l := c.logs[r.ID]
 	if l == nil {
 		c.logs[r.ID] = &logItem{res: r}
@@ -46,11 +46,11 @@ func (c *collector) Respond(r *response) {
 	}
 }
 
-func (c *collector) Error(err error) {
+func (c *collector) error(err error) {
 	c.errors = append(c.errors, err)
 }
 
-func (c *collector) Stop(t endTime) {
+func (c *collector) stop(t endTime) {
 	c.endTime = time.Time(t)
 }
 
