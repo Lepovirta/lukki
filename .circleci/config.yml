@@ -14,3 +14,41 @@ jobs:
       - run:
           name: Build
           command: ./bin/build.sh
+      - persist_to_workspace:
+          root: out
+          paths:
+            - lukki*
+            - git_tag.txt
+
+  release:
+    docker:
+      - image: circleci/golang:1.12
+    steps:
+      - attach_workspace:
+          at: ./artifacts
+      - run:
+          name: Get GHR
+          command: go get github.com/tcnksm/ghr
+      - run:
+          name: Release to GitHub
+          command: |
+            VERSION=$(cat artifacts/git_tag.txt)
+            rm artifacts/git_tag.txt
+            ghr \
+              -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" \
+              -c "${CIRCLE_SHA1}" -soft \
+              "$VERSION" ./artifacts/
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - build
+      - release:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/

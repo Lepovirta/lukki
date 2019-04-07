@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 BUILDINFO_PKG="github.com/Lepovirta/lukki/internal/buildinfo"
-VERSION=$(git describe --match 'v[0-9]*' | sed 's/^v//')
+VERSION=$(./bin/version.sh)
 PLATFORMS=(
     "linux/arm"
     "linux/arm64"
@@ -26,11 +26,10 @@ build_go() {
 
 build_all() {
     mkdir -p out
-    local platform_split
+    echo "v$VERSION" > out/git_tag.txt
     for platform in "${PLATFORMS[@]}"; do
-        platform_split=(${platform//\// })
-        GOOS=${platform_split[0]}
-        GOARCH=${platform_split[1]}
+        GOOS=$(cut -d '/' -f1 <<< "$platform")
+        GOARCH=$(cut -d '/' -f2 <<< "$platform")
         build_go
     done
 }
