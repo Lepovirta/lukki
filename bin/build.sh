@@ -24,6 +24,16 @@ build_go() {
         -o "out/lukki-${GOOS}-${GOARCH}${suffix:-}"
 }
 
+create_shasums() {
+    if [ -f out/SHA256SUMS ]; then
+        rm out/SHA256SUMS
+    fi
+    (
+        cd out/
+        shasum -a 256 lukki* > SHA256SUMS
+    )
+}
+
 build_all() {
     mkdir -p out
     echo "v$VERSION" > out/git_tag.txt
@@ -32,6 +42,7 @@ build_all() {
         GOARCH=$(cut -d '/' -f2 <<< "$platform")
         build_go
     done
+    create_shasums
 }
 
 build_all
