@@ -17,11 +17,13 @@ func crawl(conf *config.Config, events chan interface{}) error {
 	collector.ParseHTTPErrorResponse = true
 	collector.Async = true
 
-	if err := collector.Limit(&colly.LimitRule{
-		DomainGlob:  "*",
-		Parallelism: conf.Parallelism,
-	}); err != nil {
-		return err
+	if conf.Parallelism > 0 {
+		if err := collector.Limit(&colly.LimitRule{
+			DomainGlob:  "*",
+			Parallelism: conf.Parallelism,
+		}); err != nil {
+			return err
+		}
 	}
 
 	homeHosts := conf.HomeHostsMap()

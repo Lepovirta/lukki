@@ -63,9 +63,6 @@ func (c *Config) FromFile(filename string) error {
 }
 
 func (c *Config) Init() (err error) {
-	if c.Parallelism <= 0 {
-		c.Parallelism = 4
-	}
 	if len(c.Elements) == 0 {
 		c.Elements = defaultElements
 	}

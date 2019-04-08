@@ -34,7 +34,9 @@ These are the accepted configurations:
   Whether or not Lukki should ignore `robots.txt` directives it finds.
   Default: `true`
 * `parallelism` (integer, optional):
-  Number of concurrent workers used for crawling. Default: 4
+  Number of parallel workers used for crawling.
+  If `0` is provided, the limit is disabled.
+  Default: no limit
 * `elements` (list of maps, optional):
   Which HTML elements to find links from.
   Each element should contain a `name` for the HTML element name (e.g. `a`),
