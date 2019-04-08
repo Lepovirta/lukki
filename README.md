@@ -41,6 +41,22 @@ These are the accepted configurations:
   and `attribute` for HTML element attribute (e.g. `href`).
   Default elements: `a.href`, `link.href`, `img.src`, `script.src`.
 
+## Hacking
+
+Lukki is written in [Go](https://golang.org/) and it uses Go modules.
+Go version 1.11+ is required.
+To get started, first fetch the dependencies:
+
+    $ go mod download
+
+To run tests:
+
+    $ go test ./...
+
+To build:
+
+    $ go build
+
 ## License
 
 GNU General Public License v3.0
