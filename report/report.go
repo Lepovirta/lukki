@@ -69,7 +69,7 @@ func (r *Resource) Duration() time.Duration {
 }
 
 func isFailedStatusCode(code int) bool {
-	return code < 200 && code >= 400
+	return code < 200 || code >= 400
 }
 
 type FailedRequest struct {
