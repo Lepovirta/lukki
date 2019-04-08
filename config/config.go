@@ -85,7 +85,7 @@ func extractHosts(urls []string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		hosts[u.Host] = true
+		hosts[u.Hostname()] = true
 	}
 	hostsSlice := make([]string, 0, len(hosts))
 	for h := range hosts {
