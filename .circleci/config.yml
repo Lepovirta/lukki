@@ -7,38 +7,22 @@ jobs:
       - checkout
       - run:
           name: Setup
-          command: ./bin/setup.sh
+          command: go mod download
       - run:
           name: Test
-          command: ./bin/test.sh
+          command: go test ./...
       - run:
           name: Build
-          command: ./bin/build.sh
-      - persist_to_workspace:
-          root: out
-          paths:
-            - lukki*
-            - git_tag.txt
-            - SHA256SUMS
+          command: go build
 
   release:
     docker:
       - image: circleci/golang:1.12
     steps:
-      - attach_workspace:
-          at: ./artifacts
-      - run:
-          name: Get GHR
-          command: go get github.com/tcnksm/ghr
+      - checkout
       - run:
           name: Release to GitHub
-          command: |
-            VERSION=$(cat artifacts/git_tag.txt)
-            rm artifacts/git_tag.txt
-            ghr \
-              -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" \
-              -c "${CIRCLE_SHA1}" -soft \
-              "$VERSION" ./artifacts/
+          command: curl -sL https://git.io/goreleaser | bash
 
 workflows:
   version: 2
@@ -48,13 +32,9 @@ workflows:
           filters:
             branches:
               only: /.*/
-            tags:
-              only: /.*/
       - release:
-          requires:
-            - build
           filters:
             branches:
               ignore: /.*/
             tags:
-              only: /^v\d+\.\d+\.\d+$/
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
