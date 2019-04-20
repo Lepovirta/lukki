@@ -5,7 +5,7 @@ import (
 	"github.com/Lepovirta/lukki/report"
 )
 
-func Execute(conf *config.Config) (*report.Report, error) {
+func Execute(conf *config.CrawlConfig) (*report.Report, error) {
 	events := make(chan interface{}, 1000)
 	collector := newCollector()
 	asyncCollector := newAsyncCollector(collector, events)

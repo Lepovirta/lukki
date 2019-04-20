@@ -37,7 +37,7 @@ func mainWithResult() (bool, error) {
 		return true, nil
 	}
 
-	var conf config.Config
+	var conf config.CrawlConfig
 	if err := readConfig(&conf); err != nil {
 		return false, err
 	}
@@ -54,7 +54,7 @@ func mainWithResult() (bool, error) {
 	return r.IsSuccessful(), nil
 }
 
-func readConfig(config *config.Config) error {
+func readConfig(config *config.CrawlConfig) error {
 	if *configPath == "STDIN" || *configPath == "" || *configPath == "-" {
 		return config.FromSTDIN()
 	}

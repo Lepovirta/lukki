@@ -49,8 +49,8 @@ func serverUrl(path string) string {
 	return fmt.Sprintf("http://%s%s", serverAddress, path)
 }
 
-func createConfig(path string) (*config.Config, error) {
-	c := config.Config{
+func createConfig(path string) (*config.CrawlConfig, error) {
+	c := config.CrawlConfig{
 		URLs: []string{serverUrl(path)},
 	}
 	return &c, c.Init()
@@ -76,7 +76,7 @@ func TestWorkingSite(t *testing.T) {
 	assertMatchesResources(
 		t,
 		r.Resources,
-		[]func(*report.Resource)bool{
+		[]func(*report.Resource) bool{
 			matchResource("index.html", 200),
 			matchResource("test1.html", 200),
 			matchResource("test2.html", 200),
@@ -103,7 +103,7 @@ func TestFailingSite(t *testing.T) {
 	assertMatchesResources(
 		t,
 		r.Resources,
-		[]func(*report.Resource)bool{
+		[]func(*report.Resource) bool{
 			matchResource("fail.html", 200),
 			matchResource("test1.html", 200),
 			matchResource("test2.html", 200),
@@ -115,7 +115,7 @@ func TestFailingSite(t *testing.T) {
 	)
 }
 
-func matchResource(path string, statusCode int) func(*report.Resource)bool {
+func matchResource(path string, statusCode int) func(*report.Resource) bool {
 	return func(r *report.Resource) bool {
 		return r.URL == serverUrl(path) && r.StatusCode == statusCode
 	}

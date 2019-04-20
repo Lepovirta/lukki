@@ -22,7 +22,7 @@ var (
 	}
 )
 
-type Config struct {
+type CrawlConfig struct {
 	URLs            []string  `json:"urls"`
 	HomeHosts       []string  `json:"homeHosts"`
 	UserAgent       string    `json:"userAgent"`
@@ -36,19 +36,19 @@ type Element struct {
 	Attribute string `json:"attribute"`
 }
 
-func (c *Config) FromJSON(input io.Reader) error {
+func (c *CrawlConfig) FromJSON(input io.Reader) error {
 	if err := json.NewDecoder(input).Decode(c); err != nil {
 		return err
 	}
 	return c.Init()
 }
 
-func (c *Config) FromSTDIN() error {
+func (c *CrawlConfig) FromSTDIN() error {
 	reader := bufio.NewReader(os.Stdin)
 	return c.FromJSON(reader)
 }
 
-func (c *Config) FromFile(filename string) error {
+func (c *CrawlConfig) FromFile(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (c *Config) FromFile(filename string) error {
 	return c.FromJSON(bufio.NewReader(file))
 }
 
-func (c *Config) Init() (err error) {
+func (c *CrawlConfig) Init() (err error) {
 	if len(c.Elements) == 0 {
 		c.Elements = defaultElements
 	}
@@ -91,7 +91,7 @@ func extractHosts(urls []string) ([]string, error) {
 	return hostsSlice, nil
 }
 
-func (c *Config) HomeHostsMap() map[string]bool {
+func (c *CrawlConfig) HomeHostsMap() map[string]bool {
 	hosts := make(map[string]bool, len(c.HomeHosts))
 	for _, host := range c.HomeHosts {
 		hosts[host] = true

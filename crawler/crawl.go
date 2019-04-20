@@ -9,7 +9,7 @@ import (
 	"github.com/gocolly/colly"
 )
 
-func crawl(conf *config.Config, events chan interface{}) error {
+func crawl(conf *config.CrawlConfig, events chan interface{}) error {
 	collector := colly.NewCollector()
 	collector.IgnoreRobotsTxt = conf.IgnoreRobotsTxt
 	collector.UserAgent = conf.UserAgent
