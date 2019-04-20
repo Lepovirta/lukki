@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ErrUnknownType = errors.New("Unknown format type")
+	ErrUnknownType = errors.New("unknown format type")
 )
 
 func ByType(t string, report *report.Report, output io.Writer) error {
