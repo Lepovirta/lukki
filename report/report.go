@@ -1,7 +1,9 @@
 package report
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"time"
 )
 
@@ -11,6 +13,10 @@ type Report struct {
 	Resources      []*Resource      `json:"resources"`
 	FailedRequests []*FailedRequest `json:"failedRequests"`
 	Errors         []string         `json:"errors"`
+}
+
+func (r *Report) ReadFromJSON(in io.Reader) error {
+	return json.NewDecoder(in).Decode(r)
 }
 
 func (r *Report) IsSuccessful() bool {
