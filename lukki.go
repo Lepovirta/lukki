@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/Lepovirta/lukki/config"
 	"github.com/Lepovirta/lukki/crawler"
 	"github.com/Lepovirta/lukki/format"
@@ -80,8 +79,15 @@ func main() {
 				Name:     "format",
 				Short:    "f",
 				Usage:    `--format=ascii`,
-				Help:     fmt.Sprintf("Report format (choices: json, ascii) (default: ascii)"),
+				Help:     "Report format (choices: json, ascii) (default: ascii)",
 				Variable: true,
+			},
+			{
+				Name:     "use-report-exit-code",
+				Short:    "e",
+				Usage:    `--use-report-exit-code`,
+				Help:     "Use report status as the exit code.",
+				Variable: false,
 			},
 		},
 		Examples: []climax.Example{
@@ -92,6 +98,14 @@ func main() {
 			{
 				Usecase:     "--format=ascii",
 				Description: `Read report from STDIN, write report to STDOUT in ASCII format`,
+			},
+			{
+				Usecase:     "--format=ascii --use-report-exit-code",
+				Description: `Format in ASCII and use the report status as the exit code`,
+			},
+			{
+				Usecase:     "--use-report-exit-code",
+				Description: `Check if the reported test was successful or failed`,
 			},
 		},
 		Handle: formatReport,
@@ -158,6 +172,7 @@ func formatReport(ctx climax.Context) int {
 	if !ok {
 		reportFormat = "ascii"
 	}
+	useReportExitCode := ctx.Is("use-report-exit-code")
 
 	r, err := readReport(inputPath)
 	if err != nil {
@@ -166,6 +181,10 @@ func formatReport(ctx climax.Context) int {
 	}
 	if err := writeReport(r, outputPath, reportFormat); err != nil {
 		log.Printf("failed to write report: %s", err)
+	}
+
+	if useReportExitCode && r.IsFailed() {
+		return 1
 	}
 	return 0
 }
