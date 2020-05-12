@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Lepovirta/lukki/config"
 	"strings"
@@ -37,10 +38,10 @@ func crawl(conf *config.CrawlConfig, events chan interface{}) error {
 			attributeValue := e.Attr(attribute)
 			if homeHosts[e.Request.URL.Hostname()] && isNotLocalLink(attributeValue) {
 				err := e.Request.Visit(attributeValue)
-				if err != nil && err != colly.ErrAlreadyVisited && err != colly.ErrRobotsTxtBlocked {
+				if isLegitError(err) {
 					events <- fmt.Errorf(
-						"failed to scan %s.%s='%s' at %s",
-						element, attribute, attributeValue, e.Request.URL,
+						"failed to scan %s.%s='%s' at %s for reason: %w",
+						element, attribute, attributeValue, e.Request.URL, err,
 					)
 				}
 			}
@@ -74,6 +75,12 @@ func crawl(conf *config.CrawlConfig, events chan interface{}) error {
 	events <- endTime(time.Now())
 
 	return nil
+}
+
+func isLegitError(err error) bool {
+	return err != nil &&
+		!errors.Is(err, colly.ErrAlreadyVisited) &&
+		!errors.Is(err, colly.ErrRobotsTxtBlocked)
 }
 
 func isNotLocalLink(s string) bool {

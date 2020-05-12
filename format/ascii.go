@@ -2,8 +2,10 @@ package format
 
 import (
 	"fmt"
-	"github.com/Lepovirta/lukki/report"
 	"io"
+	"strings"
+
+	"github.com/Lepovirta/lukki/report"
 )
 
 func ToASCII(r *report.Report, w io.Writer) error {
@@ -39,8 +41,8 @@ func ToASCII(r *report.Report, w io.Writer) error {
 			return err
 		}
 		for _, logErr := range r.Errors {
-			line := fmt.Sprintf("  %s\n", logErr)
-			if _, err := w.Write([]byte(line)); err != nil {
+			errTxt := formatErrorTxt(logErr)
+			if _, err := w.Write([]byte(errTxt)); err != nil {
 				return err
 			}
 		}
@@ -53,4 +55,15 @@ func ToASCII(r *report.Report, w io.Writer) error {
 	}
 
 	return nil
+}
+
+func formatErrorTxt(errTxt string) string {
+	// Add indentation for multiline errors
+	errTxt = strings.ReplaceAll(errTxt, "\n", "\n    ")
+	
+	// Remove the extra surrounding whitespace
+	errTxt = strings.TrimSpace(errTxt)
+	
+	// Add initial indentation and ensure that there's a newline character
+	return fmt.Sprintf("  %s\n", errTxt)
 }
